@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Play, CheckCircle, Clock, Zap, Users, Target, Navigation } from "lucide-react"
+import { ArrowLeft, ArrowRight, Play, CheckCircle, Clock, Zap, Users, Target, Navigation, Anchor, Link } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function InfluenceDemoPage() {
@@ -36,11 +36,11 @@ export default function InfluenceDemoPage() {
       case "diplomat":
         return <Users className="w-6 h-6" />
       case "anchor":
-        return <Target className="w-6 h-6" />
+        return <Anchor className="w-6 h-6" />
       case "navigator":
         return <Navigation className="w-6 h-6" />
       case "connector":
-        return <Users className="w-6 h-6" />
+        return <Link className="w-6 h-6" />
       default:
         return <Users className="w-6 h-6" />
     }
