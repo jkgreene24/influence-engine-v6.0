@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle, RotateCcw, Pen } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function InfluenceNDAPage() {
@@ -13,36 +15,128 @@ export default function InfluenceNDAPage() {
   const [agreed, setAgreed] = useState(false)
   const [signing, setSigning] = useState(false)
   const [signed, setSigned] = useState(false)
+  const [signatureData, setSignatureData] = useState<string>("")
+  const [isDrawing, setIsDrawing] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+    // For demo purposes, create a mock user if none exists
+    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+
     if (!currentUser) {
-      router.push("/contact")
-      return
-    }
-
-    if (!currentUser.quizCompleted) {
-      router.push("/influence-quiz")
-      return
-    }
-
-    if (!currentUser.demoWatched) {
-      router.push("/influence-demo")
-      return
+      currentUser = {
+        id: Date.now().toString(),
+        firstName: "Demo",
+        lastName: "User",
+        email: "demo@example.com",
+        primaryInfluenceStyle: "Catalyst",
+        secondaryInfluenceStyle: "Connector",
+        quizCompleted: true,
+        demoWatched: true,
+        ndaSigned: false,
+      }
+      localStorage.setItem("current_influence_user", JSON.stringify(currentUser))
     }
 
     // Check if already signed
     if (currentUser.ndaSigned) {
       setSigned(true)
+      if (currentUser.signatureData) {
+        setSignatureData(currentUser.signatureData)
+      }
     }
 
     setUser(currentUser)
     setLoading(false)
   }, [router])
 
+  // Signature pad functions
+// Add this function to get accurate coordinates
+const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const canvas = canvasRef.current
+  if (!canvas) return { x: 0, y: 0 }
+
+  const rect = canvas.getBoundingClientRect()
+  const scaleX = canvas.width / rect.width
+  const scaleY = canvas.height / rect.height
+
+  let clientX, clientY
+  if ("touches" in e) {
+    clientX = e.touches[0].clientX
+    clientY = e.touches[0].clientY
+  } else {
+    clientX = e.clientX
+    clientY = e.clientY
+  }
+
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
+  }
+}
+
+const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  setIsDrawing(true)
+  const canvas = canvasRef.current
+  if (!canvas) return
+
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return
+
+  ctx.strokeStyle = "#000000"
+  ctx.lineWidth = 1
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
+
+  const { x, y } = getCanvasCoordinates(e)
+  ctx.beginPath()
+  ctx.moveTo(x, y)
+}
+
+const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  if (!isDrawing) return
+
+  const canvas = canvasRef.current
+  if (!canvas) return
+
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return
+
+  if ("touches" in e) {
+    e.preventDefault() // Prevent scrolling on touch
+  }
+
+  const { x, y } = getCanvasCoordinates(e)
+  ctx.lineTo(x, y)
+  ctx.stroke()
+}
+
+  const stopDrawing = () => {
+    if (!isDrawing) return
+    setIsDrawing(false)
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    // Save signature data
+    const dataURL = canvas.toDataURL("image/png")
+    setSignatureData(dataURL)
+  }
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    setSignatureData("")
+  }
+
   const handleSignNDA = async () => {
-    if (!agreed) return
+    if (!agreed || !signatureData) return
 
     setSigning(true)
 
@@ -51,6 +145,7 @@ export default function InfluenceNDAPage() {
       const updatedUser = {
         ...user,
         ndaSigned: true,
+        signatureData: signatureData,
         ndaSignedAt: new Date().toISOString(),
       }
 
@@ -98,7 +193,7 @@ export default function InfluenceNDAPage() {
                 <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                  <p className="text-sm text-gray-600">NDA Completed</p>
+                  <p className="text-sm text-gray-600">Agreement Completed</p>
                 </div>
               </div>
             </div>
@@ -111,17 +206,35 @@ export default function InfluenceNDAPage() {
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">🎉 NDA Successfully Signed!</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">🎉 Agreement Successfully Signed!</h1>
               <p className="text-xl text-gray-600 mb-6">
-                Thank you {user.firstName} for signing the Non-Disclosure Agreement. You've completed all the required
-                steps for your influence style assessment.
+                Thank you {user.firstName} for signing The Influence Engine™ Use & Confidentiality Agreement. You've
+                completed all the required steps for your influence style assessment.
               </p>
+
+              {/* Show signature */}
+              {signatureData && (
+                <div className="mb-8">
+                  <p className="text-sm text-gray-600 mb-2">Your Digital Signature:</p>
+                  <div className="inline-block border-2 border-gray-300 rounded-lg p-4 bg-white">
+                    <img
+                      src={signatureData || "/placeholder.svg"}
+                      alt="Digital Signature"
+                      className="max-w-xs h-16 object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Signed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-white rounded-lg p-6 mb-8 border">
                 <h3 className="font-bold text-gray-900 mb-4">What's Next:</h3>
                 <div className="text-left space-y-2">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className="text-gray-700">Assessment completed ✓</span>
+                    <span className="text-gray-700">Quick assessment completed ✓</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -133,14 +246,14 @@ export default function InfluenceNDAPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className="text-gray-700">NDA signed ✓</span>
+                    <span className="text-gray-700">Use & Confidentiality Agreement signed ✓</span>
                   </div>
                 </div>
               </div>
               <p className="text-gray-600 mb-6">
                 Your complete {user.primaryInfluenceStyle}
                 {user.secondaryInfluenceStyle && ` → ${user.secondaryInfluenceStyle}`} toolkit will be available
-                shortly. We'll be in touch with next steps.
+                shortly. We'll be in touch with next steps for accessing The Influence Engine™.
               </p>
               <Button
                 onClick={handleContinue}
@@ -167,17 +280,19 @@ export default function InfluenceNDAPage() {
               <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                <p className="text-sm text-gray-600">Non-Disclosure Agreement</p>
+                <p className="text-sm text-gray-600">Use & Confidentiality Agreement</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => router.push("/influence-profile")}
-              className="text-gray-600 hover:text-[#92278F]"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Profile
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/influence-profile")}
+                className="text-gray-600 hover:text-[#92278F]"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Profile
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -188,70 +303,145 @@ export default function InfluenceNDAPage() {
           <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Protect Our Proprietary Methods</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Use & Confidentiality Agreement</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Hi {user.firstName}! Before accessing your complete {user.primaryInfluenceStyle} influence toolkit, please
-            review and sign this Non-Disclosure Agreement to protect our proprietary coaching methodologies.
+            review and sign this Use & Confidentiality Agreement to protect our proprietary AI-powered system.
           </p>
         </div>
 
-        {/* NDA Content */}
+        {/* Agreement Content */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <FileText className="w-5 h-5" />
-              <span>Non-Disclosure Agreement</span>
+              <span>The Influence Engine™ – Use & Confidentiality Agreement</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="prose max-w-none">
             <div className="bg-gray-50 p-6 rounded-lg text-sm text-gray-700 max-h-96 overflow-y-auto">
-              <h3 className="font-bold text-gray-900 mb-4">THE INFLUENCE ENGINE™ NON-DISCLOSURE AGREEMENT</h3>
-
-              <p className="mb-4">
-                This Non-Disclosure Agreement ("Agreement") is entered into between {user.firstName} {user.lastName}{" "}
-                ("Recipient") and The Influence Engine™ ("Company") regarding access to proprietary influence coaching
-                methodologies, assessments, and related materials.
+              <p className="mb-4 font-medium text-gray-900">
+                Thank you for purchasing The Influence Engine™ — a proprietary AI-powered tool designed to elevate how
+                you communicate, lead, negotiate, and build trust. This system is built on years of strategy, coaching
+                experience, and intellectual property. To protect its integrity — and your experience — the following
+                terms apply:
               </p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">1. CONFIDENTIAL INFORMATION</h4>
+              <h4 className="font-semibold text-gray-900 mb-2 mt-6">Private Use Only</h4>
               <p className="mb-4">
-                "Confidential Information" includes but is not limited to: proprietary coaching methodologies, influence
-                style frameworks, assessment algorithms, coaching scripts, training materials, and any other non-public
-                information related to The Influence Engine™ system.
+                Access is for your personal use only. Please do not share your login credentials, access link, or screen
+                content with others. Group coaching, shared sessions, or screen-sharing is not permitted without written
+                permission.
               </p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">2. NON-DISCLOSURE OBLIGATIONS</h4>
-              <p className="mb-4">Recipient agrees to:</p>
+              <h4 className="font-semibold text-gray-900 mb-2">No Screenshots, Recordings, or Transcripts</h4>
+              <p className="mb-4">
+                You may not post or share screenshots, video recordings, transcripts, or audio of The Influence
+                Engine™'s responses, logic, or interface. This ensures the system cannot be misused, copied, or taken
+                out of context.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Talk About It — Just Don't Leak It</h4>
+              <p className="mb-2">
+                We encourage you to share your experience and results — feel free to post reactions, takeaways, or how
+                the tool has helped you. But do not share:
+              </p>
               <ul className="list-disc pl-6 mb-4">
-                <li>Keep all Confidential Information strictly confidential</li>
-                <li>Not disclose, reproduce, or distribute any Confidential Information</li>
-                <li>Not reverse engineer or attempt to recreate proprietary methodologies</li>
-                <li>Use Confidential Information solely for personal leadership development</li>
+                <li>Your access link or login credentials</li>
+                <li>Full conversations, transcripts, or screenshots</li>
+                <li>The system's backend logic or structure</li>
               </ul>
+              <p className="mb-4 font-medium">Keep the experience public. Keep the engine protected.</p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">3. PERMITTED USE</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">No Reverse Engineering</h4>
               <p className="mb-4">
-                Recipient may use the provided materials and methodologies for personal leadership development and may
-                discuss general concepts learned through the program, but may not share specific proprietary frameworks,
-                assessments, or detailed methodologies.
+                You agree not to replicate, reverse-engineer, extract, or mimic the tool's structure, phrasing, logic,
+                or decision-making flow in any way.
               </p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">4. TERM</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">You're Accessing Proprietary IP</h4>
               <p className="mb-4">
-                This Agreement remains in effect for 5 years from the date of signing or until the Confidential
-                Information becomes publicly available through no breach of this Agreement.
+                Your purchase grants a 1-year license to use The Influence Engine™. All toolkits, logic, and frameworks
+                remain the intellectual property of the creator. Access does not imply ownership or permission to reuse
+                elements elsewhere.
               </p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">5. REMEDIES</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Respect for Proprietary Use</h4>
               <p className="mb-4">
-                Recipient acknowledges that breach of this Agreement would cause irreparable harm to Company and agrees
-                that Company may seek injunctive relief and monetary damages for any breach.
+                You're welcome to be inspired by your experience with The Influence Engine™, but we ask that you refrain
+                from directly copying or recreating its unique language, frameworks, or interaction style in other AI or
+                coaching tools. We simply ask that you respect the time, originality, and intellectual effort behind
+                this product.
               </p>
 
-              <h4 className="font-semibold text-gray-900 mb-2">6. GOVERNING LAW</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Access Duration & Future Terms</h4>
               <p className="mb-4">
-                This Agreement shall be governed by the laws of [State/Country] without regard to conflict of law
-                principles.
+                Your license is valid for 1 year from your purchase date. After one year, access may be renewed based on
+                the terms and pricing available at that time. You will be notified of any changes in advance.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Refund Policy</h4>
+              <p className="mb-2">
+                You may request a full refund within 14 days of purchase, but only if you've actively used the tool —
+                including:
+              </p>
+              <ul className="list-disc pl-6 mb-4">
+                <li>Completing the Influence Style Quiz</li>
+                <li>Applying the Engine in at least one real conversation</li>
+              </ul>
+              <p className="mb-4">No refunds will be issued for non-use, curiosity access, or "just looking around."</p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">User Conduct</h4>
+              <p className="mb-4">
+                You agree not to use the Engine to manipulate, impersonate, or harm others — and not to apply the
+                content in unethical, harassing, or illegal ways. This tool is built to support ethical influence,
+                leadership, and communication.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">System Monitoring & Data Use</h4>
+              <p className="mb-4">
+                We may track general usage patterns to improve performance, identify bugs, and protect system health. No
+                personal conversations are reviewed unless submitted for support.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Support & Technical Issues</h4>
+              <p className="mb-4">
+                If you encounter technical problems, please reach out to [support@email.com]. Access time will not be
+                paused or extended except in the case of verified, prolonged downtime caused by us.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Community Access & Guidelines (Slack + Notion)</h4>
+              <p className="mb-2">
+                Your license may include access to our private Notion resource hub and Slack community. These spaces are
+                designed to support your growth, answer questions, and connect with others. To maintain a respectful
+                environment:
+              </p>
+              <p className="mb-2 font-medium text-green-700">✅ Allowed:</p>
+              <ul className="list-disc pl-6 mb-2">
+                <li>Asking questions, sharing wins, giving feedback</li>
+                <li>Participating in group threads and resource discussions</li>
+                <li>Using materials for your own influence journey</li>
+              </ul>
+              <p className="mb-2 font-medium text-red-700">🚫 Not Allowed:</p>
+              <ul className="list-disc pl-6 mb-4">
+                <li>Sharing login info or reposting content outside the group</li>
+                <li>Pitching or DMing members without consent</li>
+                <li>Posting aggressive, rude, or off-topic content</li>
+                <li>Using the space to criticize or undermine the tool, creator, or other users</li>
+              </ul>
+              <p className="mb-4">Violation may result in removal from the community without refund.</p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Non-Transferable Access</h4>
+              <p className="mb-4">
+                Your access cannot be transferred, loaned, or resold. Each user must purchase their own access to The
+                Influence Engine™.
+              </p>
+
+              <h4 className="font-semibold text-gray-900 mb-2">Disclaimer</h4>
+              <p className="mb-4">
+                The Influence Engine™ offers strategic guidance for communication, negotiation, and leadership. It is
+                not a substitute for legal, medical, or financial advice. You are responsible for how you apply its
+                recommendations.
               </p>
 
               <p className="text-xs text-gray-500 mt-6">Last updated: {new Date().toLocaleDateString()}</p>
@@ -262,18 +452,74 @@ export default function InfluenceNDAPage() {
         {/* Agreement Section */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-3 mb-6">
               <Checkbox
-                id="nda-agreement"
+                id="agreement-checkbox"
                 checked={agreed}
                 onCheckedChange={(checked) => setAgreed(checked as boolean)}
                 className="mt-1"
               />
-              <label htmlFor="nda-agreement" className="text-gray-700 leading-relaxed cursor-pointer">
-                I, {user.firstName} {user.lastName}, have read, understood, and agree to be bound by the terms of this
-                Non-Disclosure Agreement. I understand that I am gaining access to proprietary methodologies and agree
-                to keep all Confidential Information strictly confidential.
+              <label htmlFor="agreement-checkbox" className="text-gray-700 leading-relaxed cursor-pointer">
+                I, {user.firstName} {user.lastName}, have read, understood, and agree to be bound by the terms of The
+                Influence Engine™ Use & Confidentiality Agreement. I understand that I am gaining access to proprietary
+                AI-powered methodologies and agree to keep all confidential information strictly confidential and use
+                the system only for my personal development.
               </label>
+            </div>
+
+            {/* Digital Signature Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Pen className="w-5 h-5 text-[#92278F]" />
+                <h3 className="text-lg font-semibold text-gray-900">Digital Signature Required</h3>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Please provide your digital signature below to complete the agreement. You can sign using your mouse or
+                finger on touch devices.
+              </p>
+
+              {/* Signature Canvas */}
+              <div className="relative border-2 border-gray-300 rounded-lg bg-white mb-4">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={200}
+                  className="w-full h-48 cursor-crosshair touch-none"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                />
+                {!signatureData && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p className="text-gray-400 text-lg">Sign here</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Signature Controls */}
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={clearSignature}
+                  className="flex items-center space-x-2 bg-transparent"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Clear Signature</span>
+                </Button>
+
+                {signatureData && (
+                  <div className="flex items-center space-x-2 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">Signature captured</span>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -282,7 +528,7 @@ export default function InfluenceNDAPage() {
         <div className="text-center">
           <Button
             onClick={handleSignNDA}
-            disabled={!agreed || signing}
+            disabled={!agreed || !signatureData || signing}
             size="lg"
             className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
@@ -294,13 +540,17 @@ export default function InfluenceNDAPage() {
             ) : (
               <div className="flex items-center space-x-2">
                 <FileText className="w-5 h-5" />
-                <span>Sign NDA & Complete Process</span>
+                <span>Complete Agreement Signing</span>
               </div>
             )}
           </Button>
 
-          {!agreed && (
-            <p className="text-sm text-gray-500 mt-4">Please read and agree to the terms above to continue</p>
+          {(!agreed || !signatureData) && (
+            <p className="text-sm text-gray-500 mt-4">
+              {!agreed && !signatureData && "Please read and agree to the terms, then provide your signature"}
+              {agreed && !signatureData && "Please provide your digital signature above"}
+              {!agreed && signatureData && "Please check the agreement checkbox above"}
+            </p>
           )}
         </div>
       </div>
