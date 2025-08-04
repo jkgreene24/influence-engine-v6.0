@@ -820,22 +820,15 @@ export default function QuickQuiz() {
     setHistory((prev) => prev.slice(0, -1))
   }
 
-  const saveUserData = () => {
+  const saveUserData = async () => {
     if (!result) return
 
     // Get or create user data
     let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
     
     if (!currentUser) {
-      currentUser = {
-        id: Date.now().toString(),
-        firstName: "User",
-        lastName: "",
-        email: "",
-        quizCompleted: false,
-        demoWatched: false,
-        ndaSigned: false,
-      }
+      router.push("/")
+      return
     }
 
     // Update user data with quiz results
@@ -850,6 +843,22 @@ export default function QuickQuiz() {
 
     // Save to localStorage
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+
+    const updatedDBUser = {
+      ...currentUser,
+      quizCompleted: true,
+    }
+    console.log(updatedDBUser)
+
+    const response = await fetch("/api/update-user", {
+      method: "POST",
+      body: JSON.stringify(updatedDBUser),
+    })
+    if (response.ok) {
+      console.log("User updated successfully")
+    } else {
+      console.error("Failed to update user")
+    }
 
     // Update users array if it exists
     const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
