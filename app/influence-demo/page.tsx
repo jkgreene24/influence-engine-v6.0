@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Play, CheckCircle, Clock, Zap, Users, Target, Navigation, Anchor, Link } from "lucide-react"
+import { ArrowLeft, ArrowRight, Play, CheckCircle, Clock, Zap, Users, Target, Navigation, Anchor, Link, Pause } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function InfluenceDemoPage() {
@@ -11,7 +11,13 @@ export default function InfluenceDemoPage() {
   const [loading, setLoading] = useState(true)
   const [videoWatched, setVideoWatched] = useState(false)
   const [watchTime, setWatchTime] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [videoDuration, setVideoDuration] = useState(0)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const router = useRouter()
+
+  // Demo video URL - replace with your actual video URL
+  const videoUrl = "http://127.0.0.1:54321/storage/v1/object/public/demovideo//2025-08-04%2006-11-59.mkv"
 
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
@@ -28,6 +34,50 @@ export default function InfluenceDemoPage() {
     setUser(currentUser)
     setLoading(false)
   }, [router])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleTimeUpdate = () => {
+      if (video.duration) {
+        const progress = (video.currentTime / video.duration) * 100
+        setWatchTime(Math.round(progress))
+      }
+    }
+
+    const handleLoadedMetadata = () => {
+      setVideoDuration(video.duration)
+    }
+
+    const handleEnded = () => {
+      setIsPlaying(false)
+      handleVideoEnd()
+    }
+
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    video.addEventListener('ended', handleEnded)
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.removeEventListener('ended', handleEnded)
+    }
+  }, [])
+
+  const togglePlayPause = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (isPlaying) {
+      video.pause()
+      setIsPlaying(false)
+    } else {
+      video.play()
+      setIsPlaying(true)
+    }
+  }
 
   const getStyleIcon = (style: string) => {
     switch (style?.toLowerCase()) {
@@ -94,6 +144,12 @@ export default function InfluenceDemoPage() {
 
   const handleContinue = () => {
     router.push("/influence-profile")
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   if (loading) {
@@ -171,28 +227,43 @@ export default function InfluenceDemoPage() {
         <Card className="mb-8">
           <CardContent className="p-0">
             <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
-              {/* Placeholder for actual video */}
+              {/* Actual Video Player */}
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                poster="/placeholder-video-poster.jpg"
+                controls={false}
+              >
+                <source src={videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+
+              {/* Custom Video Controls Overlay */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-20 h-20 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-8 h-8 text-white ml-1" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">The Influence Engine™ Demo</h3>
-                  <p className="text-gray-300 mb-4">
-                    5 minutes • Personalized for {user.primaryInfluenceStyle} Leaders
-                  </p>
-                  <Button onClick={simulateVideoWatch} className="bg-[#92278F] hover:bg-[#7a1f78] text-white">
-                    <Play className="w-4 h-4 mr-2" />
+                {!isPlaying && (
+                  <Button 
+                    onClick={togglePlayPause}
+                    size="lg"
+                    className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 rounded-full shadow-lg"
+                  >
+                    <Play className="w-8 h-8 mr-2" />
                     Play Demo Video
                   </Button>
-                </div>
+                )}
               </div>
 
-              {/* Progress bar (simulated) */}
-              {watchTime > 0 && (
+              {/* Video Progress Bar */}
+              {isPlaying && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-4">
                   <div className="flex items-center space-x-3 text-white text-sm">
-                    <Clock className="w-4 h-4" />
+                    <Button
+                      onClick={togglePlayPause}
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/20"
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
                     <div className="flex-1 bg-gray-600 rounded-full h-2">
                       <div
                         className="bg-[#92278F] h-2 rounded-full transition-all duration-300"
