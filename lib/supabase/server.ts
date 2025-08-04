@@ -1,44 +1,32 @@
-import { MockAuth } from "@/lib/mock-auth"
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-// Mock server client - same as client for demo purposes
 export async function createClient() {
-  return {
-    auth: {
-      async getUser() {
-        const user = MockAuth.getCurrentUser()
-        return {
-          data: { user },
-          error: null,
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  const cookieStore = await cookies();
+
+  return createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
         }
       },
     },
-
-    from(table: string) {
-      if (table === "profiles") {
-        return {
-          select(columns = "*") {
-            return {
-              eq(column: string, value: any) {
-                return {
-                  single() {
-                    const profile = MockAuth.getProfile(value)
-                    return Promise.resolve({
-                      data: profile,
-                      error: profile ? null : { message: "Profile not found" },
-                    })
-                  },
-                }
-              },
-            }
-          },
-        }
-      }
-
-      return {
-        select() {
-          return Promise.resolve({ data: [], error: null })
-        },
-      }
-    },
-  }
+  });
 }
