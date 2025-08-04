@@ -114,6 +114,28 @@ export default function InfluenceProfile() {
     }
   }
 
+  const formatProfileText = (text: string) => {
+    if (!text) return ""
+    
+    // Split by double line breaks to preserve paragraphs
+    const paragraphs = text.split(/\n\n+/)
+    
+    return paragraphs.map((paragraph, index) => {
+      // Split by single line breaks for line breaks within paragraphs
+      const lines = paragraph.split(/\n/)
+      
+      return (
+        <div key={index} className="mb-4">
+          {lines.map((line, lineIndex) => (
+            <div key={lineIndex} className="mb-2">
+              {line.trim()}
+            </div>
+          ))}
+        </div>
+      )
+    })
+  }
+
   const handleContinue = () => {
     router.push("/influence-nda")
   }
@@ -202,11 +224,11 @@ export default function InfluenceProfile() {
 
         {/* Superpower Card */}
         <Card className="mb-8 border-2 border-[#92278F]/20 from-[#92278F]/5 to-purple-50">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Superpower</h2>
-            <p className="text-gray-600 mb-6 text-lg">
-              {dbProfile.snapshot_profile || "Loading your superpower..."}
-            </p>
+          <CardContent className="p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Your Superpower</h2>
+            <div className="text-gray-600 text-lg">
+              {dbProfile.snapshot_profile ? formatProfileText(dbProfile.snapshot_profile) : "Loading your superpower..."}
+            </div>
           </CardContent>
         </Card>
 
