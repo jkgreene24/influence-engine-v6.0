@@ -65,10 +65,12 @@ export default function ContactPage() {
 
     try {
       // Simulate API call - check for existing users
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("/api/get-users")
+      const data = await response.json()
 
-      // Check localStorage for existing users (mock validation)
-      const existingUsers = JSON.parse(localStorage.getItem("influence_users") || "[]")
+      localStorage.setItem("influence_users", JSON.stringify(data))
+      const existingUsers = data
+      console.log(existingUsers)
 
       const existingEmail = existingUsers.find((user: any) => user.email.toLowerCase() === email.toLowerCase())
       if (existingEmail) {
@@ -102,7 +104,16 @@ export default function ContactPage() {
       }
 
       existingUsers.push(userData)
-      localStorage.setItem("influence_users", JSON.stringify(existingUsers))
+      console.log(userData)
+      const insertResponse = await fetch("/api/insert-user", {
+        method: "POST",
+        body: JSON.stringify(userData),
+      })
+      console.log(insertResponse)
+      if (insertResponse.ok) {
+        console.log("User inserted successfully")
+        localStorage.setItem("influence_users", JSON.stringify(existingUsers))
+      }
       localStorage.setItem("current_influence_user", JSON.stringify(userData))
 
       setSuccess(true)
