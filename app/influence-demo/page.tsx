@@ -31,9 +31,51 @@ export default function InfluenceDemoPage() {
       return
     }
 
+    // Check if user has already watched the demo
+    if (currentUser.demoWatched) {
+      setVideoWatched(true)
+    }
+
     setUser(currentUser)
     setLoading(false)
   }, [router])
+
+  // Test video URL accessibility
+  useEffect(() => {
+    console.log("Testing video URL:", videoUrl)
+    fetch(videoUrl, { method: 'HEAD' })
+      .then(response => {
+        console.log("Video URL status:", response.status, response.ok)
+      })
+      .catch(error => {
+        console.error("Video URL error:", error)
+      })
+  }, [videoUrl])
+
+  const handleVideoEnd = async () => {
+    console.log("handleVideoEnd called - setting videoWatched to true")
+    setVideoWatched(true)
+
+    // Update user data
+    const updatedUser = {
+      ...user,
+      demoWatched: true,
+    }
+
+    console.log("Updated user data:", updatedUser)
+    localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+
+    // Update users array
+    const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
+    const userIndex = users.findIndex((u: any) => u.id === user.id)
+    if (userIndex !== -1) {
+      users[userIndex] = updatedUser
+      localStorage.setItem("influence_users", JSON.stringify(users))
+      console.log("Updated users array with demoWatched status")
+    }
+
+    setUser(updatedUser)
+  }
 
   useEffect(() => {
     const video = videoRef.current
@@ -43,26 +85,46 @@ export default function InfluenceDemoPage() {
       if (video.duration) {
         const progress = (video.currentTime / video.duration) * 100
         setWatchTime(Math.round(progress))
+        
+        // Check if video is near the end (within 1 second)
+        if (video.currentTime >= video.duration - 1) {
+          console.log("Video near end - marking as watched")
+          handleVideoEnd()
+        }
       }
     }
 
     const handleLoadedMetadata = () => {
+      console.log("Video metadata loaded - duration:", video.duration)
       setVideoDuration(video.duration)
     }
 
     const handleEnded = () => {
+      console.log("Video ended event fired - marking as watched")
       setIsPlaying(false)
       handleVideoEnd()
+    }
+
+    const handleError = (e: Event) => {
+      console.error("Video error:", e)
+    }
+
+    const handleCanPlay = () => {
+      console.log("Video can play")
     }
 
     video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
     video.addEventListener('ended', handleEnded)
+    video.addEventListener('error', handleError)
+    video.addEventListener('canplay', handleCanPlay)
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate)
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('ended', handleEnded)
+      video.removeEventListener('error', handleError)
+      video.removeEventListener('canplay', handleCanPlay)
     }
   }, [])
 
@@ -111,28 +173,6 @@ export default function InfluenceDemoPage() {
       default:
         return "bg-gray-500"
     }
-  }
-
-  const handleVideoEnd = async () => {
-    setVideoWatched(true)
-
-    // Update user data
-    const updatedUser = {
-      ...user,
-      demoWatched: true,
-    }
-
-    localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
-
-    // Update users array
-    const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
-    const userIndex = users.findIndex((u: any) => u.id === user.id)
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser
-      localStorage.setItem("influence_users", JSON.stringify(users))
-    }
-
-    setUser(updatedUser)
   }
 
   const simulateVideoWatch = () => {
@@ -231,24 +271,68 @@ export default function InfluenceDemoPage() {
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
-                poster="/placeholder-video-poster.jpg"
                 controls={false}
+                preload="metadata"
+                onLoadStart={() => console.log("Video load started")}
+                onLoadedData={() => console.log("Video data loaded")}
+                onCanPlay={() => console.log("Video can play")}
+                onPlay={() => console.log("Video started playing")}
+                onPause={() => console.log("Video paused")}
+                onEnded={() =>{ console.log("Video ended"), handleVideoEnd()}}
+                onError={(e) => console.error("Video error:", e)}
               >
                 <source src={videoUrl} type="video/mp4" />
+                <source src={videoUrl} type="video/webm" />
+                <source src={videoUrl} type="video/ogg" />
                 Your browser does not support the video tag.
               </video>
 
               {/* Custom Video Controls Overlay */}
               <div className="absolute inset-0 flex items-center justify-center">
                 {!isPlaying && (
-                  <Button 
-                    onClick={togglePlayPause}
-                    size="lg"
-                    className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 rounded-full shadow-lg"
-                  >
-                    <Play className="w-8 h-8 mr-2" />
-                    Play Demo Video
-                  </Button>
+                  <div className="text-center">
+                    <Button 
+                      onClick={togglePlayPause}
+                      size="lg"
+                      className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 rounded-full shadow-lg mb-4"
+                    >
+                      <Play className="w-8 h-8 mr-2" />
+                      Play Demo Video
+                    </Button>
+                    
+                    {/* Debug button for testing */}
+                    <div className="mt-2">
+                      <Button 
+                        onClick={simulateVideoWatch}
+                        size="sm"
+                        variant="outline"
+                        className="text-white border-white hover:bg-white/20"
+                      >
+                        Test: Mark as Watched
+                      </Button>
+                      
+                      {/* Test video play */}
+                      <Button 
+                        onClick={() => {
+                          const video = videoRef.current
+                          if (video) {
+                            console.log("Manual play attempt")
+                            video.play().then(() => {
+                              console.log("Video play successful")
+                              setIsPlaying(true)
+                            }).catch(error => {
+                              console.error("Video play failed:", error)
+                            })
+                          }
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="text-white border-white hover:bg-white/20 ml-2"
+                      >
+                        Test: Play Video
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
 
