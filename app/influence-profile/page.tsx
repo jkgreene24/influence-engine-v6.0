@@ -293,7 +293,7 @@ export default function InfluenceProfile() {
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
     if (!currentUser) {
-      router.push("/contact")
+      router.push("/")
       return
     }
 
