@@ -17,7 +17,7 @@ export default function InfluenceDemoPage() {
   const router = useRouter()
 
   // Demo video URL - replace with your actual video URL
-  const videoUrl = "http://127.0.0.1:54321/storage/v1/object/public/demovideo//2025-08-04%2006-11-59.mkv"
+  const videoUrl = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || ""
 
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
