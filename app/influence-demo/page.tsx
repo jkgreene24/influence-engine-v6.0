@@ -21,7 +21,7 @@ export default function InfluenceDemoPage() {
     }
 
     if (!currentUser.quizCompleted) {
-      router.push("/influence-quiz")
+      router.push("/quick-quiz")
       return
     }
 
@@ -119,7 +119,7 @@ export default function InfluenceDemoPage() {
             </div>
             <Button
               variant="ghost"
-              onClick={() => router.push("/influence-quiz")}
+              onClick={() => router.push("/quick-quiz")}
               className="text-gray-600 hover:text-[#92278F]"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

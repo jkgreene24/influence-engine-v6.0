@@ -820,6 +820,51 @@ export default function QuickQuiz() {
     setHistory((prev) => prev.slice(0, -1))
   }
 
+  const saveUserData = () => {
+    if (!result) return
+
+    // Get or create user data
+    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+    
+    if (!currentUser) {
+      currentUser = {
+        id: Date.now().toString(),
+        firstName: "User",
+        lastName: "",
+        email: "",
+        quizCompleted: false,
+        demoWatched: false,
+        ndaSigned: false,
+      }
+    }
+
+    // Update user data with quiz results
+    const updatedUser = {
+      ...currentUser,
+      quizCompleted: true,
+      primaryInfluenceStyle: result.primary.charAt(0).toUpperCase() + result.primary.slice(1),
+      secondaryInfluenceStyle: result.secondary ? result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1) : null,
+      quizResult: result,
+      quizCompletedAt: new Date().toISOString(),
+    }
+
+    // Save to localStorage
+    localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+
+    // Update users array if it exists
+    const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
+    const userIndex = users.findIndex((u: any) => u.id === updatedUser.id)
+    if (userIndex !== -1) {
+      users[userIndex] = updatedUser
+    } else {
+      users.push(updatedUser)
+    }
+    localStorage.setItem("influence_users", JSON.stringify(users))
+
+    // Navigate to influence-demo
+    router.push("/influence-demo")
+  }
+
   const getResultDisplay = () => {
     if (!result) return null
 
@@ -941,20 +986,19 @@ export default function QuickQuiz() {
 
           {/* CTA Section */}
           <div className="text-center space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Ready to Unlock Your Full Influence Potential?</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Ready to Continue Your Journey?</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              This quick assessment is just the beginning. Get your complete Influence Style toolkit and start your
-              7-day free trial of The Influence Engine™.
+              Your influence style has been identified! Continue to watch the demo and get your personalized snapshot profile.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                onClick={() => router.push("/auth/signup")}
+                onClick={saveUserData}
                 className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
               >
-                Start Your Free Trial
+                Continue to Demo
               </Button>
             </div>
-            <p className="text-sm text-gray-500">No credit card required • 7-day free trial • Cancel anytime</p>
+            <p className="text-sm text-gray-500">Next: Watch the demo video to understand your influence style</p>
           </div>
         </div>
       </div>

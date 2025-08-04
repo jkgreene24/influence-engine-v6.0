@@ -115,7 +115,7 @@ export default function ContactPage() {
   }
 
   const handleContinue = () => {
-    router.push("/influence-quiz")
+    router.push("/quick-quiz")
   }
 
   if (success) {

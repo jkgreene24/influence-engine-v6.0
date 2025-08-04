@@ -298,7 +298,7 @@ export default function InfluenceProfile() {
     }
 
     if (!currentUser.quizCompleted) {
-      router.push("/influence-quiz")
+      router.push("/quick-quiz")
       return
     }
 
@@ -350,7 +350,7 @@ export default function InfluenceProfile() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Unable to generate profile</h2>
           <p className="text-gray-600 mb-6">Please complete the assessment first.</p>
-          <Button onClick={() => router.push("/influence-quiz")} className="bg-[#92278F] hover:bg-[#7a1f78]">
+          <Button onClick={() => router.push("/quick-quiz")} className="bg-[#92278F] hover:bg-[#7a1f78]">
             Take Assessment
           </Button>
         </div>
