@@ -146,9 +146,28 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
         ...user,
         ndaSigned: true,
         signatureData: signatureData,
-        ndaSignedAt: new Date().toISOString(),
       }
 
+      console.log("Updating user with NDA signature:", updatedUser)
+
+      const response = await fetch("/api/update-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedUser),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("Update user error:", errorData)
+        throw new Error(`Failed to update user: ${errorData.error || 'Unknown error'}`)
+      }
+
+      const result = await response.json()
+      console.log("User updated successfully:", result)
+
+      // Update localStorage
       localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
       // Update users array
@@ -163,6 +182,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
       setSigned(true)
     } catch (error) {
       console.error("Error signing NDA:", error)
+      alert("Failed to sign NDA. Please try again.")
     } finally {
       setSigning(false)
     }

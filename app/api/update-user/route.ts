@@ -3,12 +3,40 @@ import { NextResponse } from "next/server";
 import { toDbFormat } from "@/lib/utils/db-conversions";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const body = await request.json();
-  const user = toDbFormat(body)
-  const { data, error } = await supabase.from("influence_users").update(user).eq("email", body.email);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    console.log("Update user request received");
+    
+    const supabase = await createClient();
+    const body = await request.json();
+    
+    console.log("Request body:", { 
+      email: body.email, 
+      ndaSigned: body.ndaSigned,
+      hasSignatureData: !!body.signatureData,
+    });
+    
+    const user = toDbFormat(body);
+    console.log("Converted to DB format:", { 
+      email: user.email, 
+      nda_signed: user.nda_signed,
+      has_signature_url: !!user.signature_url,
+    });
+    
+    const { data, error } = await supabase
+      .from("influence_users")
+      .update(user)
+      .eq("email", body.email)
+      .select();
+      
+    if (error) {
+      console.error("Supabase update error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    
+    console.log("User updated successfully:", data);
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error("Route error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-  return NextResponse.json(data);
 }
