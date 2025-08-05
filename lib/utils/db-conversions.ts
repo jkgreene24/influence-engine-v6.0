@@ -16,6 +16,7 @@ export interface InfluenceUser {
   profileGenerated: boolean;
   ndaSigned: boolean;
   signatureData?: string;
+  paidAt?: string;
 }
 
 export interface DbInfluenceUser {
@@ -33,6 +34,7 @@ export interface DbInfluenceUser {
   profile_generated: boolean;
   nda_signed: boolean;
   signature_url?: string;
+  paid_at?: string;
 }
 
 // Convert camelCase to snake_case for database insertion
@@ -50,6 +52,7 @@ export function toDbFormat(user: InfluenceUser): DbInfluenceUser {
     profile_generated: user.profileGenerated,
     nda_signed: user.ndaSigned,
     signature_url: user.signatureData,
+    paid_at: user.paidAt,
   };
 }
 
@@ -70,6 +73,7 @@ export function fromDbFormat(dbUser: DbInfluenceUser): InfluenceUser {
     profileGenerated: dbUser.profile_generated,
     ndaSigned: dbUser.nda_signed,
     signatureData: dbUser.signature_url,
+    paidAt: dbUser.paid_at,
   };
 }
 

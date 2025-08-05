@@ -30,11 +30,33 @@ export async function POST(request: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       console.log("Payment successful for session:", session.id);
       
-      // Here you would:
-      // 1. Update user's purchase status in database
-      // 2. Send welcome email with toolkit access
-      // 3. Add user to community/notion access
-      // 4. Log the successful purchase
+      // Update user's payment status in database
+      if (session.customer_email) {
+        try {
+          const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/update-payment-status`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userEmail: session.customer_email,
+            }),
+          });
+          
+          if (updateResponse.ok) {
+            console.log("Payment status updated successfully for:", session.customer_email);
+          } else {
+            console.error("Failed to update payment status for:", session.customer_email);
+          }
+        } catch (error) {
+          console.error("Error updating payment status:", error);
+        }
+      }
+      
+      // Here you would also:
+      // 1. Send welcome email with toolkit access
+      // 2. Add user to community/notion access
+      // 3. Log the successful purchase
       
       console.log("Session metadata:", session.metadata);
       console.log("Customer email:", session.customer_email);

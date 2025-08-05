@@ -112,6 +112,8 @@ export default function PurchaseSuccessPage() {
               <div className="bg-white rounded-lg p-4 mb-6 border">
                 <p className="text-sm text-gray-600 mb-2">Transaction ID:</p>
                 <p className="font-mono text-sm bg-gray-100 p-2 rounded">{sessionId}</p>
+                <p className="text-sm text-gray-600 mt-2">Payment Date:</p>
+                <p className="text-sm font-medium">{new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
               </div>
             )}
 
