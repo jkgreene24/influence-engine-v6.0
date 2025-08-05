@@ -222,12 +222,29 @@ export default function PurchaseSuccessPage() {
                <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
                  <CardContent className="p-8">
                    <div className="text-center mb-6">
-                     <div className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                       {getStyleIcon(user.primaryInfluenceStyle)}
-                     </div>
+                      {/* User's Style Display */}
+                      {user.primaryInfluenceStyle && (
+                        <div className="flex justify-center items-center space-x-4 mb-8">
+                          <div
+                            className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
+                          >
+                            {getStyleIcon(user.primaryInfluenceStyle)}
+                          </div>
+                          {user.secondaryInfluenceStyle && (
+                            <>
+                              <div className="text-2xl font-bold text-[#92278F]">+</div>
+                              <div
+                                className={`w-16 h-16 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
+                              >
+                                {getStyleIcon(user.secondaryInfluenceStyle)}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
                        {user.primaryInfluenceStyle}
-                       {user.secondaryInfluenceStyle && ` → ${user.secondaryInfluenceStyle}`} Full Toolkit
+                       {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Full Toolkit
                      </h2>
                      <p className="text-gray-600">Your complete influence framework is now unlocked</p>
                    </div>
@@ -259,7 +276,7 @@ export default function PurchaseSuccessPage() {
                <div className="text-left space-y-2">
                  <div className="flex items-center space-x-2">
                    <Gift className="w-4 h-4 text-green-500" />
-                   <span className="text-gray-700">Complete {user.primaryInfluenceStyle} toolkit document (PDF)</span>
+                   <span className="text-gray-700">Complete {user.primaryInfluenceStyle + (user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : '')} toolkit document (PDF)</span>
                  </div>
                  <div className="flex items-center space-x-2">
                    <Gift className="w-4 h-4 text-green-500" />
