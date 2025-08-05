@@ -189,9 +189,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
   }
 
   const handleContinue = () => {
-    // For now, show completion message
-    // Later this will redirect to payment/toolkit access
-    alert("Congratulations! You've completed the assessment process. Your toolkit access will be provided shortly.")
+    router.push("/purchase-toolkit")
   }
 
   if (loading) {
@@ -280,7 +278,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                 size="lg"
                 className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold"
               >
-                Complete Process
+                Purchase Full Style Toolkit
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </CardContent>
