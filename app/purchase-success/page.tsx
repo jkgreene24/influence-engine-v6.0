@@ -237,51 +237,7 @@ export default function PurchaseSuccessPage() {
                </Card>
              )}
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-               {/* Toolkit Access */}
-               <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                 <CardContent className="p-6 text-center">
-                   <div className={`w-12 h-12 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                     {getStyleIcon(user.primaryInfluenceStyle)}
-                   </div>
-                   <h3 className="font-semibold text-gray-900 mb-2">Your Toolkit</h3>
-                   <p className="text-sm text-gray-600 mb-4">
-                     Complete {user.primaryInfluenceStyle} influence framework with advanced strategies
-                   </p>
-                   <Button
-                     onClick={handleAccessToolkit}
-                     size="sm"
-                     className="bg-[#92278F] hover:bg-[#7a1f78] text-white"
-                   >
-                     Access Toolkit
-                     <ArrowRight className="ml-2 w-4 h-4" />
-                   </Button>
-                 </CardContent>
-               </Card>
-
-               {/* Community Access */}
-               <Card className="border-2 border-blue-200 bg-blue-50">
-                 <CardContent className="p-6 text-center">
-                   <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                     <Users className="w-6 h-6 text-white" />
-                   </div>
-                   <h3 className="font-semibold text-gray-900 mb-2">Community</h3>
-                   <p className="text-sm text-gray-600 mb-4">
-                     Join our private Notion hub and Slack community for support
-                   </p>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                   >
-                     Join Community
-                     <ArrowRight className="ml-2 w-4 h-4" />
-                   </Button>
-                 </CardContent>
-               </Card>
-             </div>
-
-                         <div className="bg-white rounded-lg p-6 mb-8 border">
+            <div className="bg-white rounded-lg p-6 mb-8 border">
                <h3 className="font-bold text-gray-900 mb-4">📧 Automated Email Coming Soon</h3>
                <p className="text-gray-600 mb-4">
                  You'll receive an automated email within 24 hours with:
