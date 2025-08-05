@@ -64,27 +64,13 @@ export default function ContactPage() {
     }
 
     try {
-      // Simulate API call - check for existing users
+      // Get existing users for localStorage update
       const response = await fetch("/api/get-users")
       const data = await response.json()
 
       localStorage.setItem("influence_users", JSON.stringify(data))
       const existingUsers = data
       console.log(existingUsers)
-
-      const existingEmail = existingUsers.find((user: any) => user.email.toLowerCase() === email.toLowerCase())
-      if (existingEmail) {
-        setError("This email address has already been used. Please use a different email.")
-        setLoading(false)
-        return
-      }
-
-      const existingPhone = existingUsers.find((user: any) => user.phone === phoneDigits)
-      if (existingPhone) {
-        setError("This phone number has already been used. Please use a different phone number.")
-        setLoading(false)
-        return
-      }
 
       // Save user data
       const userData = {
