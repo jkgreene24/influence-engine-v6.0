@@ -162,7 +162,7 @@ export default function PurchaseSuccessPage() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Success Card */}
         <Card className="mb-8 border-2 border-green-200 bg-green-50">
-          <CardContent className="text-center py-12">
+          <CardContent className="py-12">
             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
@@ -218,12 +218,12 @@ export default function PurchaseSuccessPage() {
                      <p className="text-gray-600">Your complete influence framework is now unlocked</p>
                    </div>
                    
-                   <div className="bg-white rounded-lg p-6 border">
-                     <h3 className="font-bold text-gray-900 mb-4 text-center">Complete Influence Style Framework</h3>
-                     <div className="text-gray-700 text-lg leading-relaxed">
-                       {fullProfile.full_profile ? formatProfileText(fullProfile.full_profile) : "Loading your complete toolkit..."}
-                     </div>
-                   </div>
+                    <div className="bg-white rounded-lg p-6 border">
+                      <h3 className="font-bold text-gray-900 mb-4">Complete Influence Style Framework</h3>
+                      <div className="text-gray-700 text-lg leading-relaxed">
+                        {fullProfile.full_profile ? formatProfileText(fullProfile.full_profile) : "Loading your complete toolkit..."}
+                      </div>
+                    </div>
                  </CardContent>
                </Card>
              )}
