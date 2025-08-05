@@ -831,12 +831,19 @@ export default function QuickQuiz() {
       return
     }
 
+    // Create influence style string
+    let influenceStyle = result.primary.charAt(0).toUpperCase() + result.primary.slice(1)
+    if (result.secondary) {
+      influenceStyle += `-${result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1)}`
+    }
+
     // Update user data with quiz results
     const updatedUser = {
       ...currentUser,
       quizCompleted: true,
       primaryInfluenceStyle: result.primary.charAt(0).toUpperCase() + result.primary.slice(1),
       secondaryInfluenceStyle: result.secondary ? result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1) : null,
+      influenceStyle: influenceStyle,
       quizResult: result,
       quizCompletedAt: new Date().toISOString(),
     }
@@ -844,20 +851,22 @@ export default function QuickQuiz() {
     // Save to localStorage
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
+    // Update database with quiz results
     const updatedDBUser = {
       ...currentUser,
       quizCompleted: true,
+      influenceStyle: influenceStyle,
     }
-    console.log(updatedDBUser)
+    console.log("Updating user in database:", updatedDBUser)
 
     const response = await fetch("/api/update-user", {
       method: "POST",
       body: JSON.stringify(updatedDBUser),
     })
     if (response.ok) {
-      console.log("User updated successfully")
+      console.log("User updated successfully in database")
     } else {
-      console.error("Failed to update user")
+      console.error("Failed to update user in database")
     }
 
     // Update users array if it exists

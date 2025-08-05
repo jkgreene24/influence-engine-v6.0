@@ -37,6 +37,20 @@ export default function InfluenceProfile() {
 
   const fetchDbProfile = async (userData: any) => {
     try {
+      // First try to use the influenceStyle directly from the database
+      if (userData.influenceStyle) {
+        console.log("Using influenceStyle from database:", userData.influenceStyle)
+        const response = await fetch(`/api/get-influence-profile?style=${userData.influenceStyle.toLowerCase()}`)
+        const data = await response.json()
+        
+        if (response.ok) {
+          console.log("Profile found for influenceStyle:", userData.influenceStyle, data)
+          setDbProfile(data)
+          return
+        }
+      }
+      
+      // Fallback to the old method using primary/secondary styles
       const primaryStyle = userData.primaryInfluenceStyle?.toLowerCase()
       const secondaryStyle = userData.secondaryInfluenceStyle?.toLowerCase()
       
@@ -58,7 +72,7 @@ export default function InfluenceProfile() {
         styleCombinations.push(`${secondaryStyle}-${primaryStyle}`)
       }
 
-      console.log("Trying style combinations:", styleCombinations)
+      console.log("Trying fallback style combinations:", styleCombinations)
 
       // Try each combination until we find a match
       for (const styleKey of styleCombinations) {

@@ -99,7 +99,6 @@ export default function ContactPage() {
         emailVerified: false,
         quizCompleted: false,
         demoWatched: false,
-        profileGenerated: false,
         ndaSigned: false,
       }
 

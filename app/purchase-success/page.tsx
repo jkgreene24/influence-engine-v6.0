@@ -42,6 +42,20 @@ export default function PurchaseSuccessPage() {
   const fetchFullProfile = async (userData: any) => {
     setProfileLoading(true)
     try {
+      // First try to use the influenceStyle directly from the database
+      if (userData.influenceStyle) {
+        console.log("Using influenceStyle from database for full profile:", userData.influenceStyle)
+        const response = await fetch(`/api/get-full-profile?style=${userData.influenceStyle.toLowerCase()}`)
+        const data = await response.json()
+        
+        if (response.ok) {
+          console.log("Full profile found for influenceStyle:", userData.influenceStyle, data)
+          setFullProfile(data)
+          return
+        }
+      }
+      
+      // Fallback to the old method using primary/secondary styles
       const primaryStyle = userData.primaryInfluenceStyle?.toLowerCase()
       const secondaryStyle = userData.secondaryInfluenceStyle?.toLowerCase()
       
@@ -56,7 +70,7 @@ export default function PurchaseSuccessPage() {
         styleCombinations.push(`${secondaryStyle}-${primaryStyle}`)
       }
 
-      console.log("Trying style combinations for full profile:", styleCombinations)
+      console.log("Trying fallback style combinations for full profile:", styleCombinations)
 
       for (const styleKey of styleCombinations) {
         console.log("Fetching full profile for style:", styleKey)

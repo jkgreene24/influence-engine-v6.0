@@ -13,7 +13,7 @@ export interface InfluenceUser {
   emailVerified: boolean;
   quizCompleted: boolean;
   demoWatched: boolean;
-  profileGenerated: boolean;
+  influenceStyle?: string;
   ndaSigned: boolean;
   signatureData?: string;
   paidAt?: string;
@@ -31,7 +31,7 @@ export interface DbInfluenceUser {
   email_verified: boolean;
   quiz_completed: boolean;
   demo_watched: boolean;
-  profile_generated: boolean;
+  influence_style?: string;
   nda_signed: boolean;
   signature_url?: string;
   paid_at?: string;
@@ -49,7 +49,7 @@ export function toDbFormat(user: InfluenceUser): DbInfluenceUser {
     email_verified: user.emailVerified,
     quiz_completed: user.quizCompleted,
     demo_watched: user.demoWatched,
-    profile_generated: user.profileGenerated,
+    influence_style: user.influenceStyle,
     nda_signed: user.ndaSigned,
     signature_url: user.signatureData,
     paid_at: user.paidAt,
@@ -70,7 +70,7 @@ export function fromDbFormat(dbUser: DbInfluenceUser): InfluenceUser {
     emailVerified: dbUser.email_verified,
     quizCompleted: dbUser.quiz_completed,
     demoWatched: dbUser.demo_watched,
-    profileGenerated: dbUser.profile_generated,
+    influenceStyle: dbUser.influence_style,
     ndaSigned: dbUser.nda_signed,
     signatureData: dbUser.signature_url,
     paidAt: dbUser.paid_at,
