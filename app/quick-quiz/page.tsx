@@ -995,8 +995,7 @@ export default function QuickQuiz() {
               <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg">
                 <h3 className="font-semibold text-purple-900 mb-2">💡 Next Steps</h3>
                 <p className="text-purple-800">
-                  Ready to experience AI coaching that's calibrated to your unique style? Start your free trial to
-                  unlock personalized guidance for real-world situations.
+                  Ready to experience AI coaching that's calibrated to your unique style? Unlock personalized guidance for real-world situations.
                 </p>
               </div>
             </CardContent>
