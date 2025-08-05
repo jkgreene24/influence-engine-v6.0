@@ -272,7 +272,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
               </div>
               <p className="text-gray-600 mb-6">
                 Your complete {user.primaryInfluenceStyle}
-                {user.secondaryInfluenceStyle && ` → ${user.secondaryInfluenceStyle}`} toolkit will be available
+                {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} toolkit will be available
                 shortly. We'll be in touch with next steps for accessing The Influence Engine™.
               </p>
               <Button

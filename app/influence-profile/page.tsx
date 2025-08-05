@@ -204,7 +204,7 @@ export default function InfluenceProfile() {
               </div>
               {secondaryStyle && (
                 <>
-                  <div className="text-2xl font-bold text-[#92278F]">→</div>
+                  <div className="text-2xl font-bold text-[#92278F]">+</div>
                   <div className={`w-16 h-16 ${getStyleColor(secondaryStyle)} rounded-full flex items-center justify-center text-white`}>
                     {getStyleIcon(secondaryStyle)}
                   </div>
@@ -213,7 +213,7 @@ export default function InfluenceProfile() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {primaryStyle.charAt(0).toUpperCase() + primaryStyle.slice(1)}
-              {secondaryStyle && <span> → {secondaryStyle.charAt(0).toUpperCase() + secondaryStyle.slice(1)}</span>}
+              {secondaryStyle && <span> + {secondaryStyle.charAt(0).toUpperCase() + secondaryStyle.slice(1)}</span>}
             </h1>
             <p className="text-gray-600 mb-4">
               Hi {user.firstName}! Here's your personalized influence style snapshot.
@@ -240,7 +240,7 @@ export default function InfluenceProfile() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               💥 Want your full {primaryStyle.charAt(0).toUpperCase() + primaryStyle.slice(1)}
-              {secondaryStyle && ` → ${secondaryStyle.charAt(0).toUpperCase() + secondaryStyle.slice(1)}`} toolkit?
+              {secondaryStyle && ` + ${secondaryStyle.charAt(0).toUpperCase() + secondaryStyle.slice(1)}`} toolkit?
             </h2>
             <p className="text-gray-600 mb-6 text-lg">
               Unlock the complete profile—built for {primaryStyle} leaders who want to maximize
