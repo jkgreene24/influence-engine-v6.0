@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, Play, CheckCircle, Clock, Zap, Users, Target, Navigation, Anchor, Link, Pause } from "lucide-react"
+import { ArrowLeft, ArrowRight, Play, CheckCircle, Zap, Users, Navigation, Anchor, Link, Pause } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function InfluenceDemoPage() {
@@ -12,7 +12,6 @@ export default function InfluenceDemoPage() {
   const [videoWatched, setVideoWatched] = useState(false)
   const [watchTime, setWatchTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [videoDuration, setVideoDuration] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const router = useRouter()
 
@@ -96,7 +95,6 @@ export default function InfluenceDemoPage() {
 
     const handleLoadedMetadata = () => {
       console.log("Video metadata loaded - duration:", video.duration)
-      setVideoDuration(video.duration)
     }
 
     const handleEnded = () => {
@@ -175,21 +173,8 @@ export default function InfluenceDemoPage() {
     }
   }
 
-  const simulateVideoWatch = () => {
-    // Simulate watching the video for demo purposes
-    setWatchTime(100)
-    setVideoWatched(true)
-    handleVideoEnd()
-  }
-
   const handleContinue = () => {
     router.push("/influence-profile")
-  }
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   if (loading) {
@@ -299,39 +284,6 @@ export default function InfluenceDemoPage() {
                       <Play className="w-8 h-8 mr-2" />
                       Play Demo Video
                     </Button>
-                    
-                    {/* Debug button for testing */}
-                    <div className="mt-2">
-                      <Button 
-                        onClick={simulateVideoWatch}
-                        size="sm"
-                        variant="outline"
-                        className="text-white border-white hover:bg-white/20"
-                      >
-                        Test: Mark as Watched
-                      </Button>
-                      
-                      {/* Test video play */}
-                      <Button 
-                        onClick={() => {
-                          const video = videoRef.current
-                          if (video) {
-                            console.log("Manual play attempt")
-                            video.play().then(() => {
-                              console.log("Video play successful")
-                              setIsPlaying(true)
-                            }).catch(error => {
-                              console.error("Video play failed:", error)
-                            })
-                          }
-                        }}
-                        size="sm"
-                        variant="outline"
-                        className="text-white border-white hover:bg-white/20 ml-2"
-                      >
-                        Test: Play Video
-                      </Button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -366,7 +318,7 @@ export default function InfluenceDemoPage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-900">
-              What You'll Learn About {user.primaryInfluenceStyle} Leadership
+              What You'll Learn About Leadership
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -376,7 +328,7 @@ export default function InfluenceDemoPage() {
                   <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                   <div>
                     <h4 className="font-semibold text-gray-900">Personalized AI Coaching</h4>
-                    <p className="text-gray-600 text-sm">How AI adapts to your {user.primaryInfluenceStyle} style</p>
+                    <p className="text-gray-600 text-sm">How AI adapts to your influence style</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -402,7 +354,7 @@ export default function InfluenceDemoPage() {
                   <div>
                     <h4 className="font-semibold text-gray-900">Style-Specific Strategies</h4>
                     <p className="text-gray-600 text-sm">
-                      Learn techniques that work with your {user.primaryInfluenceStyle} approach
+                      Learn techniques that work with your influence style
                     </p>
                   </div>
                 </div>
@@ -434,7 +386,7 @@ export default function InfluenceDemoPage() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Excellent! You've watched the demo</h2>
               <p className="text-gray-600 mb-6">
-                Now let's show you your personalized {user.primaryInfluenceStyle} influence style snapshot based on your
+                Now let's show you your personalized influence style snapshot based on your
                 assessment results.
               </p>
               <Button
@@ -452,7 +404,7 @@ export default function InfluenceDemoPage() {
             <CardContent className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to see your personalized results?</h2>
               <p className="text-gray-600 mb-6">
-                Watch the demo video above to unlock your {user.primaryInfluenceStyle} influence style snapshot.
+                Watch the demo video above to unlock your influence style snapshot.
               </p>
               <Button disabled size="lg" className="bg-gray-400 text-white px-8 py-4 cursor-not-allowed">
                 Watch Demo First
