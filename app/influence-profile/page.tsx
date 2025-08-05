@@ -166,7 +166,7 @@ export default function InfluenceProfile() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Unable to generate profile</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Stuck here?</h2>
           <p className="text-gray-600 mb-6">Please complete the assessment first.</p>
           <Button onClick={() => router.push("/quick-quiz")} className="bg-[#92278F] hover:bg-[#7a1f78]">
             Take Assessment
