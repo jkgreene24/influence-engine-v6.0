@@ -8,28 +8,44 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userEmail, userName, influenceStyle, secondaryStyle } = body;
+    const { userEmail, userName, influenceStyle, secondaryStyle, purchaseType = "toolkit" } = body;
 
-    console.log("Creating checkout session for:", { userEmail, userName, influenceStyle, secondaryStyle });
+    console.log("Creating checkout session for:", { userEmail, userName, influenceStyle, secondaryStyle, purchaseType });
+
+    // Determine product and pricing based on purchase type
+    let priceId: string;
+    let successUrl: string;
+    let cancelUrl: string;
+
+    if (purchaseType === "betty") {
+      priceId = process.env.STRIPE_BETTY_PRICE_ID!; // $499 Betty product price ID
+      successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}&type=betty`;
+      cancelUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/influence-nda`;
+    } else {
+      priceId = process.env.STRIPE_TOOLKIT_PRICE_ID!; // $19 Toolkit product price ID
+      successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}&type=toolkit`;
+      cancelUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/influence-nda`;
+    }
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID, // Your $19.00 product price ID
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-toolkit`,
+      mode: "payment", // Both are one-time payments
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: userEmail,
       metadata: {
         userEmail,
         userName,
         influenceStyle,
         secondaryStyle: secondaryStyle || "",
+        purchaseType,
       },
       billing_address_collection: "required",
       shipping_address_collection: {

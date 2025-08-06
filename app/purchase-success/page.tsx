@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, CheckCircle, Gift, Users, Zap, Navigation, Link, Anchor } from "lucide-react"
+import { ArrowRight, CheckCircle, Gift, Users, Zap, Navigation, Link, Anchor, Crown } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 export default function PurchaseSuccessPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [sessionId, setSessionId] = useState<string>("")
+  const [purchaseType, setPurchaseType] = useState<string>("toolkit")
   const [fullProfile, setFullProfile] = useState<any>(null)
   const [profileLoading, setProfileLoading] = useState(false)
   const router = useRouter()
@@ -24,20 +25,26 @@ export default function PurchaseSuccessPage() {
     }
 
     const sessionIdParam = searchParams.get("session_id")
+    const typeParam = searchParams.get("type")
+    
     if (sessionIdParam) {
       setSessionId(sessionIdParam)
+    }
+    
+    if (typeParam) {
+      setPurchaseType(typeParam)
     }
 
     setUser(currentUser)
     setLoading(false)
   }, [router, searchParams])
 
-  // Fetch full profile when user is loaded
+  // Fetch full profile when user is loaded (only for toolkit purchases)
   useEffect(() => {
-    if (user && !fullProfile) {
+    if (user && !fullProfile && purchaseType === "toolkit") {
       fetchFullProfile(user)
     }
-  }, [user])
+  }, [user, purchaseType])
 
   const fetchFullProfile = async (userData: any) => {
     setProfileLoading(true)
@@ -142,9 +149,54 @@ export default function PurchaseSuccessPage() {
     }
   }
 
-  const handleAccessToolkit = () => {
-    // This would redirect to the actual toolkit access
-    alert("Toolkit access will be provided via email within 24 hours!")
+  const getPurchaseTitle = () => {
+    if (purchaseType === "betty") {
+      return "Betty - The Influence Engine™"
+    }
+    return `${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`
+  }
+
+  const getPurchaseDescription = () => {
+    if (purchaseType === "betty") {
+      return "Your AI-powered influence coaching system is now active!"
+    }
+    return `Your ${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} toolkit is now yours.`
+  }
+
+  const getNextSteps = () => {
+    if (purchaseType === "betty") {
+      return [
+        "Payment processed successfully ✓",
+        "Betty AI system activated ✓",
+        "Welcome email sent ✓",
+        "Notion resource hub access granted ✓",
+        "Slack community invitation sent ✓",
+        "Lifetime access granted ✓"
+      ]
+    }
+    return [
+      "Payment processed successfully ✓",
+      "Toolkit access granted ✓",
+      "Welcome email sent ✓",
+      "Digital resource library unlocked ✓"
+    ]
+  }
+
+  const getEmailContent = () => {
+    if (purchaseType === "betty") {
+      return [
+        "Betty AI system login credentials",
+        "Notion resource hub invitation link",
+        "Slack community invitation link",
+        "Getting started guide and tutorials",
+        "Lifetime access confirmation"
+      ]
+    }
+    return [
+      `Complete ${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} toolkit document (PDF)`,
+      "Digital resource library access",
+      "Getting started guide and next steps"
+    ]
   }
 
   if (loading) {
@@ -175,16 +227,19 @@ export default function PurchaseSuccessPage() {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Success Card */}
-        <Card className="mb-8 border-2 border-green-200 bg-green-50">
+        <Card className={`mb-8 border-2 ${purchaseType === "betty" ? "border-[#92278F] bg-gradient-to-r from-[#92278F]/10 to-purple-50" : "border-green-200 bg-green-50"}`}>
           <CardContent className="text-center py-12">
-            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-white" />
+            <div className={`w-20 h-20 ${purchaseType === "betty" ? "bg-[#92278F]" : "bg-green-500"} rounded-full flex items-center justify-center mx-auto mb-6`}>
+              {purchaseType === "betty" ? <Crown className="w-10 h-10 text-white" /> : <CheckCircle className="w-10 h-10 text-white" />}
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">🎉 Purchase Successful!</h1>
             <p className="text-xl text-gray-600 mb-6">
-              Thank you {user.firstName}! Your {user.primaryInfluenceStyle}
-              {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} toolkit is now yours.
+              Thank you {user.firstName}! {getPurchaseDescription()}
             </p>
+
+            {purchaseType === "betty" && (
+              <Badge className="bg-[#92278F] text-white text-lg px-4 py-2 mb-6">PREMIUM ACCESS</Badge>
+            )}
 
             {sessionId && (
               <div className="bg-white rounded-lg p-4 mb-6 border">
@@ -198,105 +253,124 @@ export default function PurchaseSuccessPage() {
             <div className="bg-white rounded-lg p-6 mb-8 border">
               <h3 className="font-bold text-gray-900 mb-4">What's Next:</h3>
               <div className="text-left space-y-3">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Payment processed successfully ✓</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Toolkit access granted ✓</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Welcome email sent ✓</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Community access activated ✓</span>
-                </div>
+                {getNextSteps().map((step, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span className="text-gray-700">{step}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-                         {/* Full Profile Display */}
-             {fullProfile && (
-               <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                 <CardContent className="p-8">
-                   <div className="text-center mb-6">
-                      {/* User's Style Display */}
-                      {user.primaryInfluenceStyle && (
-                        <div className="flex justify-center items-center space-x-4 mb-8">
-                          <div
-                            className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
-                          >
-                            {getStyleIcon(user.primaryInfluenceStyle)}
-                          </div>
-                          {user.secondaryInfluenceStyle && (
-                            <>
-                              <div className="text-2xl font-bold text-[#92278F]">+</div>
-                              <div
-                                className={`w-16 h-16 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
-                              >
-                                {getStyleIcon(user.secondaryInfluenceStyle)}
-                              </div>
-                            </>
-                          )}
+            {/* Full Profile Display - Only for toolkit purchases */}
+            {purchaseType === "toolkit" && fullProfile && (
+              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+                <CardContent className="p-8">
+                  <div className="text-center mb-6">
+                    {/* User's Style Display */}
+                    {user.primaryInfluenceStyle && (
+                      <div className="flex justify-center items-center space-x-4 mb-8">
+                        <div
+                          className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
+                        >
+                          {getStyleIcon(user.primaryInfluenceStyle)}
                         </div>
-                      )}
-                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                       {user.primaryInfluenceStyle}
-                       {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Full Toolkit
-                     </h2>
-                     <p className="text-gray-600">Your complete influence framework is now unlocked</p>
-                   </div>
-                   
-                    <div className="bg-white rounded-lg p-6 border">
-                      <h3 className="font-bold text-gray-900 mb-4">Complete Influence Style Framework</h3>
-                      <div className="text-gray-700 text-lg leading-relaxed text-left">
-                        {fullProfile.full_profile ? formatProfileText(fullProfile.full_profile) : "Loading your complete toolkit..."}
+                        {user.secondaryInfluenceStyle && (
+                          <>
+                            <div className="text-2xl font-bold text-[#92278F]">+</div>
+                            <div
+                              className={`w-16 h-16 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
+                            >
+                              {getStyleIcon(user.secondaryInfluenceStyle)}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      {user.primaryInfluenceStyle}
+                      {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Full Toolkit
+                    </h2>
+                    <p className="text-gray-600">Your complete influence framework is now unlocked</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-6 border">
+                    <h3 className="font-bold text-gray-900 mb-4">Complete Influence Style Framework</h3>
+                    <div className="text-gray-700 text-lg leading-relaxed text-left">
+                      {fullProfile.full_profile ? formatProfileText(fullProfile.full_profile) : "Loading your complete toolkit..."}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {purchaseType === "toolkit" && profileLoading && (
+              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+                <CardContent className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#92278F] mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your complete toolkit...</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Betty-specific content */}
+            {purchaseType === "betty" && (
+              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Crown className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Betty - The Influence Engine™</h2>
+                  <p className="text-gray-600 mb-6">Your AI-powered influence coaching system is ready!</p>
+                  
+                  <div className="bg-white rounded-lg p-6 border">
+                    <h3 className="font-bold text-gray-900 mb-4">What Betty Provides:</h3>
+                    <div className="text-left space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                        <span className="text-gray-700">AI-powered influence coaching</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                        <span className="text-gray-700">Personalized conversation scripts</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                        <span className="text-gray-700">Real-time strategy guidance</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                        <span className="text-gray-700">Private Notion resource hub</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                        <span className="text-gray-700">Slack community access</span>
                       </div>
                     </div>
-                 </CardContent>
-               </Card>
-             )}
-
-             {profileLoading && (
-               <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                 <CardContent className="p-8 text-center">
-                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#92278F] mx-auto mb-4"></div>
-                   <p className="text-gray-600">Loading your complete toolkit...</p>
-                 </CardContent>
-               </Card>
-             )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="bg-white rounded-lg p-6 mb-8 border">
-               <h3 className="font-bold text-gray-900 mb-4">📧 Automated Email Coming Soon</h3>
-               <p className="text-gray-600 mb-4">
-                 You'll receive an automated email within 24 hours with:
-               </p>
-               <div className="text-left space-y-2">
-                 <div className="flex items-center space-x-2">
-                   <Gift className="w-4 h-4 text-green-500" />
-                   <span className="text-gray-700">Complete {user.primaryInfluenceStyle + (user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : '')} toolkit document (PDF)</span>
-                 </div>
-                 <div className="flex items-center space-x-2">
-                   <Gift className="w-4 h-4 text-green-500" />
-                   <span className="text-gray-700">Notion resource hub invitation link</span>
-                 </div>
-                 <div className="flex items-center space-x-2">
-                   <Gift className="w-4 h-4 text-green-500" />
-                   <span className="text-gray-700">Slack community invitation link</span>
-                 </div>
-                 <div className="flex items-center space-x-2">
-                   <Gift className="w-4 h-4 text-green-500" />
-                   <span className="text-gray-700">Getting started guide and next steps</span>
-                 </div>
-               </div>
-             </div>
+              <h3 className="font-bold text-gray-900 mb-4">📧 Automated Email Coming Soon</h3>
+              <p className="text-gray-600 mb-4">
+                You'll receive an automated email within 24 hours with:
+              </p>
+              <div className="text-left space-y-2">
+                {getEmailContent().map((item, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Gift className="w-4 h-4 text-green-500" />
+                    <span className="text-gray-700">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <Button
               onClick={() => router.push("/")}
               size="lg"
-              className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold"
+              className={`${purchaseType === "betty" ? "bg-[#92278F] hover:bg-[#7a1f78]" : "bg-green-600 hover:bg-green-700"} text-white px-8 py-4 text-lg font-semibold`}
             >
               Return to Home
               <ArrowRight className="ml-2 w-5 h-5" />
