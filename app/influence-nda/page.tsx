@@ -396,13 +396,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
       // Update localStorage with updated user record
       localStorage.setItem("current_influence_user", JSON.stringify(updatedUserRecord))
 
-      // Update users array
-      const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
-      const userIndex = users.findIndex((u: any) => u.id === user.id)
-      if (userIndex !== -1) {
-        users[userIndex] = updatedUserRecord
-      }
-      localStorage.setItem("influence_users", JSON.stringify(users))
+
 
       setUser(updatedUserRecord)
       setSigned(true)

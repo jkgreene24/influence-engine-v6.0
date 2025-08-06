@@ -64,14 +64,6 @@ export default function ContactPage() {
     }
 
     try {
-      // Get existing users for localStorage update
-      const response = await fetch("/api/get-users")
-      const data = await response.json()
-
-      localStorage.setItem("influence_users", JSON.stringify(data))
-      const existingUsers = data
-      console.log(existingUsers)
-
       // Save user data
       const userData = {
         firstName: firstName.trim(),
@@ -103,9 +95,7 @@ export default function ContactPage() {
           id: result.data?.[0]?.id || Date.now().toString()
         }
         
-        // Update localStorage with the new user that has the correct ID
-        existingUsers.push(newUserWithId)
-        localStorage.setItem("influence_users", JSON.stringify(existingUsers))
+        // Store only the current user in localStorage
         localStorage.setItem("current_influence_user", JSON.stringify(newUserWithId))
       } else {
         console.error("Failed to insert user")

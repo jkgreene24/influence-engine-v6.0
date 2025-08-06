@@ -875,15 +875,7 @@ export default function QuickQuiz() {
        console.error("Failed to update user in database")
      }
 
-    // Update users array if it exists
-    const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
-    const userIndex = users.findIndex((u: any) => u.id === updatedUser.id)
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser
-    } else {
-      users.push(updatedUser)
-    }
-    localStorage.setItem("influence_users", JSON.stringify(users))
+
 
     // Navigate to influence-demo
     router.push("/influence-demo")

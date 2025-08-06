@@ -64,14 +64,7 @@ export default function InfluenceDemoPage() {
     console.log("Updated user data:", updatedUser)
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
-    // Update users array
-    const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
-    const userIndex = users.findIndex((u: any) => u.id === user.id)
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser
-      localStorage.setItem("influence_users", JSON.stringify(users))
-      console.log("Updated users array with demoWatched status")
-    }
+
 
     setUser(updatedUser)
   }
