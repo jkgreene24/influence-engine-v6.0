@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle, RotateCcw, Pen, CreditCard, Zap, Users, Navigation, Link, Anchor, Crown, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { loadStripe } from "@stripe/stripe-js"
@@ -18,7 +19,14 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 // Payment Form Component
-function PaymentForm({ user, purchaseType, onSuccess }: { user: any, purchaseType: string, onSuccess: (sessionId: string) => void }) {
+function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onSignNDA }: { 
+  user: any, 
+  purchaseType: string, 
+  onSuccess: (sessionId: string) => void,
+  agreed: boolean,
+  signatureData: string,
+  onSignNDA: () => Promise<void>
+}) {
   const stripe = useStripe()
   const elements = useElements()
   const [purchasing, setPurchasing] = useState(false)
@@ -31,9 +39,18 @@ function PaymentForm({ user, purchaseType, onSuccess }: { user: any, purchaseTyp
   const handlePayment = async () => {
     if (!stripe || !elements) return
 
+    // Check if NDA is signed
+    if (!agreed || !signatureData) {
+      alert("Please read and agree to the terms, then provide your signature before proceeding with payment.")
+      return
+    }
+
     setPurchasing(true)
 
     try {
+      // First, sign the NDA
+      await onSignNDA()
+
       const cardElement = elements.getElement(CardElement)
       if (!cardElement) {
         throw new Error("Card element not found")
@@ -184,24 +201,34 @@ function PaymentForm({ user, purchaseType, onSuccess }: { user: any, purchaseTyp
         </p>
       </div>
 
-      <Button
-        onClick={handlePayment}
-        disabled={purchasing || !cardholderName || !billingAddress || !billingCity || !billingState || !billingZip}
-        size="lg"
-        className={`${purchaseType === "betty" ? "bg-[#92278F] hover:bg-[#7a1f78]" : "bg-green-600 hover:bg-green-700"} text-white px-8 py-4 text-lg font-semibold w-full disabled:bg-gray-400 disabled:cursor-not-allowed`}
-      >
-        {purchasing ? (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Processing Payment...</span>
-          </div>
-        ) : (
-          <div className="flex items-center space-x-2">
-            <CreditCard className="w-5 h-5" />
-            <span>Complete Purchase - ${purchaseType === "betty" ? "499.00" : "19.00"}</span>
-          </div>
-        )}
-      </Button>
+             <Button
+         onClick={handlePayment}
+         disabled={purchasing || !cardholderName || !billingAddress || !billingCity || !billingState || !billingZip || !agreed || !signatureData}
+         size="lg"
+         className={`${purchaseType === "betty" ? "bg-[#92278F] hover:bg-[#7a1f78]" : "bg-green-600 hover:bg-green-700"} text-white px-8 py-4 text-lg font-semibold w-full disabled:bg-gray-400 disabled:cursor-not-allowed`}
+       >
+         {purchasing ? (
+           <div className="flex items-center space-x-2">
+             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+             <span>Processing Payment...</span>
+           </div>
+         ) : (
+           <div className="flex items-center space-x-2">
+             <CreditCard className="w-5 h-5" />
+             <span>Complete Purchase - ${purchaseType === "betty" ? "499.00" : "19.00"}</span>
+           </div>
+         )}
+       </Button>
+
+       {(!agreed || !signatureData) && (
+         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+           <p className="text-sm text-yellow-800">
+             {!agreed && !signatureData && "Please read and agree to the terms, then provide your signature above"}
+             {agreed && !signatureData && "Please provide your digital signature above"}
+             {!agreed && signatureData && "Please check the agreement checkbox above"}
+           </p>
+         </div>
+       )}
     </div>
   )
 }
@@ -214,7 +241,7 @@ export default function InfluenceNDAPage() {
   const [signed, setSigned] = useState(false)
   const [signatureData, setSignatureData] = useState<string>("")
   const [isDrawing, setIsDrawing] = useState(false)
-  const [purchaseType, setPurchaseType] = useState<"toolkit" | "betty" | null>(null)
+  const [purchaseType, setPurchaseType] = useState<"toolkit" | "betty">("toolkit")
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
@@ -421,11 +448,6 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
     }
   }
 
-  const handlePurchaseClick = (type: "toolkit" | "betty") => {
-    setPurchaseType(type)
-    setShowPaymentForm(true)
-  }
-
   const handlePaymentSuccess = (sessionId: string) => {
     router.push(`/purchase-success?type=${purchaseType}&session_id=${sessionId}`)
   }
@@ -438,255 +460,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
     )
   }
 
-  if (signed && !showPaymentForm) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center space-x-3">
-                <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                  <p className="text-sm text-gray-600">Choose Your Path</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
 
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <Card className="border-2 border-green-200 bg-green-50 mb-8">
-            <CardContent className="text-center py-8">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">🎉 Agreement Successfully Signed!</h1>
-              <p className="text-lg text-gray-600 mb-4">
-                Thank you {user.firstName} for signing The Influence Engine™ Use & Confidentiality Agreement.
-              </p>
-
-              {/* Show signature */}
-              {signatureData && (
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-2">Your Digital Signature:</p>
-                  <div className="inline-block border-2 border-gray-300 rounded-lg p-4 bg-white">
-                    <img
-                      src={signatureData || "/placeholder.svg"}
-                      alt="Digital Signature"
-                      className="max-w-xs h-16 object-contain"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Signed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Purchase Options */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Toolkit Option */}
-            <Card className="border-2 border-green-200 bg-green-50">
-              <CardContent className="p-8 text-center">
-                <div className="flex justify-center items-center space-x-4 mb-6">
-                  <div className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}>
-                    {getStyleIcon(user.primaryInfluenceStyle)}
-                  </div>
-                  {user.secondaryInfluenceStyle && (
-                    <>
-                      <div className="text-2xl font-bold text-[#92278F]">+</div>
-                      <div className={`w-16 h-16 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}>
-                        {getStyleIcon(user.secondaryInfluenceStyle)}
-                      </div>
-                    </>
-                  )}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {user.primaryInfluenceStyle}
-                  {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Toolkit
-                </h2>
-                <div className="text-3xl font-bold text-green-600 mb-2">$19.00</div>
-                <p className="text-gray-600 mb-6">One-time purchase • Lifetime access</p>
-                
-                <div className="bg-white rounded-lg p-6 mb-6 border">
-                  <h3 className="font-bold text-gray-900 mb-4">What's Included:</h3>
-                  <div className="text-left space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Complete {user.primaryInfluenceStyle} influence framework</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Advanced communication strategies</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Negotiation and persuasion techniques</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Leadership and team building tools</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Digital resource library</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => handlePurchaseClick("toolkit")}
-                  size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold w-full"
-                >
-                  <div className="flex items-center space-x-2">
-                    <CreditCard className="w-5 h-5" />
-                    <span>Purchase Toolkit - $19.00</span>
-                  </div>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Betty Option */}
-            <Card className="border-2 border-[#92278F] bg-gradient-to-br from-[#92278F]/10 to-purple-50">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Crown className="w-8 h-8 text-white" />
-                </div>
-                <Badge className="bg-[#92278F] text-white mb-4">PREMIUM</Badge>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Betty - The Influence Engine™</h2>
-                <div className="text-3xl font-bold text-[#92278F] mb-2">$499.00</div>
-                <p className="text-gray-600 mb-6">One-time purchase • Lifetime access</p>
-                
-                <div className="bg-white rounded-lg p-6 mb-6 border">
-                  <h3 className="font-bold text-gray-900 mb-4">Everything in Toolkit +:</h3>
-                  <div className="text-left space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">AI-powered influence coaching</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">Personalized conversation scripts</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">Real-time strategy guidance</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">Private Notion resource hub</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">Slack community access</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                      <span className="text-gray-700">Lifetime access</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => handlePurchaseClick("betty")}
-                  size="lg"
-                  className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold w-full"
-                >
-                  <div className="flex items-center space-x-2">
-                    <Crown className="w-5 h-5" />
-                    <span>Purchase Betty - $499.00</span>
-                  </div>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Additional Info */}
-          <Card className="mt-8 border-2 border-blue-200 bg-blue-50">
-            <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Your Path?</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Start with Toolkit ($19)</h4>
-                  <p className="text-sm text-gray-600">
-                    Perfect for getting to know your influence style and building foundational skills. 
-                    You can always upgrade to Betty later when you're ready for the full AI-powered experience.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Go Direct to Betty ($499)</h4>
-                  <p className="text-sm text-gray-600">
-                    Jump straight into the complete AI-powered influence system with personalized coaching, 
-                    community access, and all premium features included.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
-  if (showPaymentForm) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center space-x-3">
-                <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                  <p className="text-sm text-gray-600">Complete Purchase</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setShowPaymentForm(false)}
-                className="text-gray-600 hover:text-[#92278F]"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Options
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        <div className="max-w-2xl mx-auto px-6 py-8">
-          <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-            <CardContent className="p-8">
-              <div className="text-center mb-8">
-                <div className={`w-16 h-16 ${purchaseType === "betty" ? "bg-[#92278F]" : "bg-green-500"} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  {purchaseType === "betty" ? <Crown className="w-8 h-8 text-white" /> : <CreditCard className="w-8 h-8 text-white" />}
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {purchaseType === "betty" ? "Betty - The Influence Engine™" : `${user.primaryInfluenceStyle}${user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`}
-                </h1>
-                <div className={`text-3xl font-bold ${purchaseType === "betty" ? "text-[#92278F]" : "text-green-600"} mb-2`}>
-                  ${purchaseType === "betty" ? "499.00" : "19.00"}
-                </div>
-                <p className="text-gray-600">One-time purchase • Secure payment</p>
-              </div>
-
-              <Elements stripe={stripePromise}>
-                <PaymentForm 
-                  user={user} 
-                  purchaseType={purchaseType!} 
-                  onSuccess={handlePaymentSuccess}
-                />
-              </Elements>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -867,6 +641,8 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
           </CardContent>
         </Card>
 
+
+
         {/* Agreement Section */}
         <Card className="mb-8">
           <CardContent className="p-6">
@@ -942,35 +718,135 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
           </CardContent>
         </Card>
 
-        {/* Sign Button */}
-        <div className="text-center">
-          <Button
-            onClick={handleSignNDA}
-            disabled={!agreed || !signatureData || signing}
-            size="lg"
-            className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {signing ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Signing Agreement...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5" />
-                <span>Complete Agreement Signing</span>
-              </div>
-            )}
-          </Button>
 
-          {(!agreed || !signatureData) && (
-            <p className="text-sm text-gray-500 mt-4">
-              {!agreed && !signatureData && "Please read and agree to the terms, then provide your signature"}
-              {agreed && !signatureData && "Please provide your digital signature above"}
-              {!agreed && signatureData && "Please check the agreement checkbox above"}
-            </p>
-          )}
-        </div>
+
+         {/* Purchase Selection and Payment Form - Always shown at bottom */}
+         <div className="mt-8 space-y-8">
+           {/* Purchase Selection */}
+           <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+             <CardContent className="p-6">
+               <div className="mb-6">
+                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Purchase Option</h3>
+                 <RadioGroup value={purchaseType} onValueChange={(value) => setPurchaseType(value as "toolkit" | "betty")}>
+                   <div className="space-y-4">
+                     <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                       <RadioGroupItem value="toolkit" id="toolkit" />
+                       <div className="flex-1">
+                         <Label htmlFor="toolkit" className="text-base font-medium cursor-pointer">
+                           <div className="flex items-center space-x-3">
+                             <div className="flex items-center space-x-2">
+                               <div className={`w-8 h-8 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}>
+                                 {getStyleIcon(user.primaryInfluenceStyle)}
+                               </div>
+                               <div className="text-2xl font-bold text-[#92278F]">+</div>
+                               {user.secondaryInfluenceStyle && (
+                                 <div className={`w-8 h-8 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}>
+                                   {getStyleIcon(user.secondaryInfluenceStyle)}
+                                 </div>
+                               )}
+                             </div>
+                             <div>
+                               <div className="font-semibold">
+                                 {user.primaryInfluenceStyle}
+                                 {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Toolkit
+                               </div>
+                               <div className="text-sm text-gray-600">$19.00 • One-time purchase</div>
+                             </div>
+                           </div>
+                         </Label>
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center space-x-3 p-4 border border-[#92278F] rounded-lg bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+                       <RadioGroupItem value="betty" id="betty" />
+                       <div className="flex-1">
+                         <Label htmlFor="betty" className="text-base font-medium cursor-pointer">
+                           <div className="flex items-center space-x-3">
+                             <div className="w-8 h-8 bg-[#92278F] rounded-full flex items-center justify-center text-white">
+                               <Crown className="w-4 h-4" />
+                             </div>
+                             <div>
+                               <div className="font-semibold flex items-center space-x-2">
+                                 <span>Betty - The Influence Engine™</span>
+                                 <Badge className="bg-[#92278F] text-white text-xs">PREMIUM</Badge>
+                               </div>
+                               <div className="text-sm text-gray-600">$499.00 • One-time purchase</div>
+                             </div>
+                           </div>
+                         </Label>
+                       </div>
+                     </div>
+                   </div>
+                 </RadioGroup>
+               </div>
+
+               <div className="bg-gray-50 p-4 rounded-lg">
+                 <h4 className="font-semibold text-gray-900 mb-2">What's Included:</h4>
+                 {purchaseType === "toolkit" ? (
+                   <div className="space-y-2 text-sm">
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-green-500" />
+                       <span>Complete {user.primaryInfluenceStyle} influence framework</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-green-500" />
+                       <span>Advanced communication strategies</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-green-500" />
+                       <span>Digital resource library</span>
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="space-y-2 text-sm">
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-[#92278F]" />
+                       <span>Everything in Toolkit + AI-powered coaching</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-[#92278F]" />
+                       <span>Personalized conversation scripts</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <CheckCircle className="w-4 h-4 text-[#92278F]" />
+                       <span>Notion resource hub + Slack community</span>
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </CardContent>
+           </Card>
+
+           {/* Payment Form - Always shown */}
+           <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+             <CardContent className="p-8">
+               <div className="text-center mb-8">
+                 <div className={`w-16 h-16 ${purchaseType === "betty" ? "bg-[#92278F]" : "bg-green-500"} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                   {purchaseType === "betty" ? <Crown className="w-8 h-8 text-white" /> : <CreditCard className="w-8 h-8 text-white" />}
+                 </div>
+                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                   {purchaseType === "betty" ? "Betty - The Influence Engine™" : `${user.primaryInfluenceStyle}${user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`}
+                 </h2>
+                 <div className={`text-3xl font-bold ${purchaseType === "betty" ? "text-[#92278F]" : "text-green-600"} mb-2`}>
+                   ${purchaseType === "betty" ? "499.00" : "19.00"}
+                 </div>
+                 <p className="text-gray-600">One-time purchase • Secure payment</p>
+               </div>
+
+               <Elements stripe={stripePromise}>
+                 <PaymentForm 
+                   user={user} 
+                   purchaseType={purchaseType} 
+                   onSuccess={handlePaymentSuccess}
+                   agreed={agreed}
+                   signatureData={signatureData}
+                   onSignNDA={handleSignNDA}
+                 />
+               </Elements>
+             </CardContent>
+           </Card>
+         </div>
+
       </div>
     </div>
   )
