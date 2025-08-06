@@ -64,7 +64,26 @@ export default function InfluenceDemoPage() {
     console.log("Updated user data:", updatedUser)
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
+    // Update database with demo watched status instantly
+    const updatedDBUser = {
+      ...user,
+      demoWatched: true,
+    }
+    console.log("Updating user demo watched status in database:", updatedDBUser)
 
+    const response = await fetch("/api/update-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedDBUser),
+    })
+    
+    if (response.ok) {
+      console.log("Demo watched status updated successfully in database")
+    } else {
+      console.error("Failed to update demo watched status in database")
+    }
 
     setUser(updatedUser)
   }

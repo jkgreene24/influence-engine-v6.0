@@ -737,6 +737,9 @@ export default function QuickQuiz() {
           const finalResult = calculateResult(newAnswers)
           setResult(finalResult)
           setCurrentStep("result")
+          
+          // Update database with quiz results instantly when quiz is completed
+          updateQuizResultsInDatabase(finalResult)
         }
       }
     } else if (currentStep === "blend") {
@@ -754,12 +757,15 @@ export default function QuickQuiz() {
       if (currentQuestionIndex < 2) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
         setSelectedAnswer("")
-      } else {
-        // Calculate final result
-        const finalResult = calculateResult(newAnswers)
-        setResult(finalResult)
-        setCurrentStep("result")
-      }
+              } else {
+          // Calculate final result
+          const finalResult = calculateResult(newAnswers)
+          setResult(finalResult)
+          setCurrentStep("result")
+          
+          // Update database with quiz results instantly when quiz is completed
+          updateQuizResultsInDatabase(finalResult)
+        }
     }
   }
 
@@ -820,6 +826,46 @@ export default function QuickQuiz() {
     setHistory((prev) => prev.slice(0, -1))
   }
 
+  const updateQuizResultsInDatabase = async (quizResult: QuizResult) => {
+    // Get or create user data
+    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+    
+    if (!currentUser) {
+      console.error("No user data found for quiz results update")
+      return
+    }
+
+    // Create influence style string
+    let influenceStyle = quizResult.primary.charAt(0).toUpperCase() + quizResult.primary.slice(1)
+    if (quizResult.secondary) {
+      influenceStyle += `-${quizResult.secondary.charAt(0).toUpperCase() + quizResult.secondary.slice(1)}`
+    }
+
+    // Update database with quiz results instantly
+    const updatedDBUser = {
+      ...currentUser,
+      quizCompleted: true,
+      influenceStyle: influenceStyle,
+      quizResult: quizResult,
+      quizCompletedAt: new Date().toISOString(),
+    }
+    console.log("Updating user quiz results in database:", updatedDBUser)
+
+    const response = await fetch("/api/update-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedDBUser),
+    })
+    
+    if (response.ok) {
+      console.log("Quiz results updated successfully in database")
+    } else {
+      console.error("Failed to update quiz results in database")
+    }
+  }
+
   const saveUserData = async () => {
     if (!result) return
 
@@ -837,7 +883,7 @@ export default function QuickQuiz() {
       influenceStyle += `-${result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1)}`
     }
 
-    // Update user data with quiz results
+    // Update user data with quiz results for localStorage
     const updatedUser = {
       ...currentUser,
       quizCompleted: true,
@@ -850,32 +896,6 @@ export default function QuickQuiz() {
 
     // Save to localStorage
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
-
-         // Update existing user with quiz results
-     const updatedDBUser = {
-       ...currentUser,
-       quizCompleted: true,
-       influenceStyle: influenceStyle,
-       quizResult: result,
-       quizCompletedAt: new Date().toISOString(),
-     }
-     console.log("Updating existing user in database:", updatedDBUser)
-
-     const response = await fetch("/api/update-user", {
-       method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-       },
-       body: JSON.stringify(updatedDBUser),
-     })
-     if (response.ok) {
-       console.log("User updated successfully in database")
-       localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
-     } else {
-       console.error("Failed to update user in database")
-     }
-
-
 
     // Navigate to influence-demo
     router.push("/influence-demo")
