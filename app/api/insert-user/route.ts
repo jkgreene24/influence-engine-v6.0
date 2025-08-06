@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     
     console.log("Attempting to insert:", dbData);
     
-    const { data, error } = await supabase.from("influence_users").insert(dbData);
+    const { data, error } = await supabase.from("influence_users").insert(dbData).select();
     
     if (error) {
       console.error("Supabase error:", error);
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     
     console.log("Insert successful:", data);
     
-    // Return the data as-is, let frontend handle conversion if needed
+    // Return the inserted data
     return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("Route error:", error);

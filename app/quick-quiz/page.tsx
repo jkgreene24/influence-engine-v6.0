@@ -851,23 +851,29 @@ export default function QuickQuiz() {
     // Save to localStorage
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
-    // Update database with quiz results
-    const updatedDBUser = {
-      ...currentUser,
-      quizCompleted: true,
-      influenceStyle: influenceStyle,
-    }
-    console.log("Updating user in database:", updatedDBUser)
+         // Update existing user with quiz results
+     const updatedDBUser = {
+       ...currentUser,
+       quizCompleted: true,
+       influenceStyle: influenceStyle,
+       quizResult: result,
+       quizCompletedAt: new Date().toISOString(),
+     }
+     console.log("Updating existing user in database:", updatedDBUser)
 
-    const response = await fetch("/api/update-user", {
-      method: "POST",
-      body: JSON.stringify(updatedDBUser),
-    })
-    if (response.ok) {
-      console.log("User updated successfully in database")
-    } else {
-      console.error("Failed to update user in database")
-    }
+     const response = await fetch("/api/update-user", {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(updatedDBUser),
+     })
+     if (response.ok) {
+       console.log("User updated successfully in database")
+       localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+     } else {
+       console.error("Failed to update user in database")
+     }
 
     // Update users array if it exists
     const users = JSON.parse(localStorage.getItem("influence_users") || "[]")

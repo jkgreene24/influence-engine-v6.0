@@ -247,22 +247,22 @@ export default function InfluenceNDAPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // For demo purposes, create a mock user if none exists
-    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
-
+    // Get existing user data from localStorage (from quiz results)
+    const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+    
     if (!currentUser) {
-      currentUser = {
-        id: Date.now().toString(),
-        firstName: "Demo",
-        lastName: "User",
-        email: "demo@example.com",
-        primaryInfluenceStyle: "Catalyst",
-        secondaryInfluenceStyle: "Connector",
-        quizCompleted: true,
-        demoWatched: true,
-        ndaSigned: false,
-      }
-      localStorage.setItem("current_influence_user", JSON.stringify(currentUser))
+      router.push("/")
+      return
+    }
+
+    if (!currentUser.quizCompleted) {
+      router.push("/quick-quiz")
+      return
+    }
+
+    if (!currentUser.demoWatched) {
+      router.push("/influence-demo")
+      return
     }
 
     // Check if already signed
@@ -361,27 +361,27 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
     setSignatureData("")
   }
 
-  const handleSignNDA = async () => {
+    const handleSignNDA = async () => {
     if (!agreed || !signatureData) return
 
     setSigning(true)
 
     try {
-      // Update user data
-      const updatedUser = {
+      // Update existing user with NDA signature
+      const updatedUserRecord = {
         ...user,
         ndaSigned: true,
         signatureData: signatureData,
       }
 
-      console.log("Updating user with NDA signature:", updatedUser)
+      console.log("Updating existing user with NDA signature:", updatedUserRecord)
 
       const response = await fetch("/api/update-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedUser),
+        body: JSON.stringify(updatedUserRecord),
       })
 
       if (!response.ok) {
@@ -390,21 +390,20 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
         throw new Error(`Failed to update user: ${errorData.error || 'Unknown error'}`)
       }
 
-      const result = await response.json()
-      console.log("User updated successfully:", result)
+      console.log("User updated successfully with NDA signature")
 
-      // Update localStorage
-      localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+      // Update localStorage with updated user record
+      localStorage.setItem("current_influence_user", JSON.stringify(updatedUserRecord))
 
       // Update users array
       const users = JSON.parse(localStorage.getItem("influence_users") || "[]")
       const userIndex = users.findIndex((u: any) => u.id === user.id)
       if (userIndex !== -1) {
-        users[userIndex] = updatedUser
-        localStorage.setItem("influence_users", JSON.stringify(users))
+        users[userIndex] = updatedUserRecord
       }
+      localStorage.setItem("influence_users", JSON.stringify(users))
 
-      setUser(updatedUser)
+      setUser(updatedUserRecord)
       setSigned(true)
     } catch (error) {
       console.error("Error signing NDA:", error)

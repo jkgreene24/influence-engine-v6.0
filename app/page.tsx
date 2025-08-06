@@ -74,7 +74,6 @@ export default function ContactPage() {
 
       // Save user data
       const userData = {
-        id: Date.now().toString(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
@@ -88,18 +87,30 @@ export default function ContactPage() {
         ndaSigned: false,
       }
 
-      existingUsers.push(userData)
-      console.log(userData)
+      console.log("Inserting new user:", userData)
       const insertResponse = await fetch("/api/insert-user", {
         method: "POST",
         body: JSON.stringify(userData),
       })
-      console.log(insertResponse)
+      
       if (insertResponse.ok) {
-        console.log("User inserted successfully")
+        const result = await insertResponse.json()
+        console.log("User inserted successfully:", result)
+        
+        // Get the Supabase-generated ID
+        const newUserWithId = {
+          ...userData,
+          id: result.data?.[0]?.id || Date.now().toString()
+        }
+        
+        // Update localStorage with the new user that has the correct ID
+        existingUsers.push(newUserWithId)
         localStorage.setItem("influence_users", JSON.stringify(existingUsers))
+        localStorage.setItem("current_influence_user", JSON.stringify(newUserWithId))
+      } else {
+        console.error("Failed to insert user")
+        throw new Error("Failed to insert user")
       }
-      localStorage.setItem("current_influence_user", JSON.stringify(userData))
 
       setSuccess(true)
     } catch (err) {

@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     console.log("Request body:", { 
+      id: body.id,
       email: body.email, 
       ndaSigned: body.ndaSigned,
       hasSignatureData: !!body.signatureData,
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
     
     const user = toDbFormat(body);
     console.log("Converted to DB format:", { 
+      id: user.id,
       email: user.email, 
       nda_signed: user.nda_signed,
       has_signature_url: !!user.signature_url,
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("influence_users")
       .update(user)
-      .eq("email", body.email)
+      .eq("id", body.id)
       .select();
       
     if (error) {
