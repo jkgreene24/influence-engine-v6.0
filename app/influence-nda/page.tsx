@@ -93,6 +93,7 @@ function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onS
           purchaseType,
           paymentMethodId: paymentMethod.id,
           amount,
+          userId: user.id,
         }),
       })
 

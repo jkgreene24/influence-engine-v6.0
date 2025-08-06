@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createClient } from "@/lib/supabase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-07-30.basil",
@@ -16,10 +17,11 @@ export async function POST(request: Request) {
       purchaseType = "toolkit",
       paymentMethodId,
       amount,
-      currency = "usd"
+      currency = "usd",
+      userId
     } = body;
 
-    console.log("Processing payment for:", { userEmail, userName, influenceStyle, secondaryStyle, purchaseType, amount });
+    console.log("Processing payment for:", { userEmail, userName, influenceStyle, secondaryStyle, purchaseType, amount, userId });
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -37,12 +39,36 @@ export async function POST(request: Request) {
         influenceStyle,
         secondaryStyle: secondaryStyle || "",
         purchaseType,
+        userId,
       },
     });
 
     console.log("Payment intent created:", paymentIntent.id);
 
     if (paymentIntent.status === 'succeeded') {
+      // Update payment status in database
+      try {
+        const supabase = await createClient();
+        const paidFor = purchaseType === "betty" ? "betty" : "toolkit";
+        
+        const { data, error } = await supabase
+          .from("influence_users")
+          .update({ 
+            paid_at: new Date().toISOString(),
+            paid_for: paidFor
+          })
+          .eq("id", userId)
+          .select();
+          
+        if (error) {
+          console.error("Failed to update payment status:", error);
+        } else {
+          console.log("Payment status updated successfully for user ID:", userId);
+        }
+      } catch (error) {
+        console.error("Error updating payment status:", error);
+      }
+
       return NextResponse.json({ 
         success: true, 
         paymentIntentId: paymentIntent.id,
