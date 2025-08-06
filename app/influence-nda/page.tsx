@@ -323,7 +323,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Use & Confidentiality Agreement</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Hi {user.firstName}! Before accessing your complete {user.primaryInfluenceStyle} influence toolkit, please
+            Hi {user.firstName}! Before accessing your complete {user.primaryInfluenceStyle + (user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : '')} influence toolkit, please
             review and sign this Use & Confidentiality Agreement to protect our proprietary AI-powered system.
           </p>
         </div>
