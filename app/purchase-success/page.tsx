@@ -151,7 +151,7 @@ export default function PurchaseSuccessPage() {
 
   const getPurchaseTitle = () => {
     if (purchaseType === "betty") {
-      return "Betty - The Influence Engine™"
+      return "The Influence Engine™"
     }
     return `${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`
   }
@@ -320,7 +320,7 @@ export default function PurchaseSuccessPage() {
                   <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
                     <Crown className="w-8 h-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Betty - The Influence Engine™</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">The Influence Engine™</h2>
                   <p className="text-gray-600 mb-6">Your AI-powered influence coaching system is ready!</p>
                   
                   <div className="bg-white rounded-lg p-6 border">

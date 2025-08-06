@@ -7,18 +7,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle, RotateCcw, Pen, CreditCard, Zap, Users, Navigation, Link, Anchor, Crown, Lock } from "lucide-react"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle, RotateCcw, Pen, Zap, Users, Navigation, Link, Anchor, Crown } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { loadStripe } from "@stripe/stripe-js"
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
+// import { loadStripe } from "@stripe/stripe-js"
+// import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Initialize Stripe - TEMPORARILY COMMENTED OUT
+// const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-// Payment Form Component
+// Payment Form Component - TEMPORARILY COMMENTED OUT
+/*
 function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onSignNDA }: { 
   user: any, 
   purchaseType: string, 
@@ -233,6 +234,7 @@ function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onS
     </div>
   )
 }
+*/
 
 export default function InfluenceNDAPage() {
   const [user, setUser] = useState<any>(null)
@@ -242,8 +244,8 @@ export default function InfluenceNDAPage() {
   const [signed, setSigned] = useState(false)
   const [signatureData, setSignatureData] = useState<string>("")
   const [isDrawing, setIsDrawing] = useState(false)
-  const [purchaseType, setPurchaseType] = useState<"toolkit" | "betty">("toolkit")
-  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  // const [purchaseType, setPurchaseType] = useState<"toolkit" | "betty">("toolkit")
+  // const [showPaymentForm, setShowPaymentForm] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
 
@@ -400,6 +402,9 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
 
       setUser(updatedUserRecord)
       setSigned(true)
+      
+      // Redirect to NDA success page instead of payment
+      router.push("/nda-success")
     } catch (error) {
       console.error("Error signing NDA:", error)
       alert("Failed to sign NDA. Please try again.")
@@ -442,9 +447,9 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
     }
   }
 
-  const handlePaymentSuccess = (sessionId: string) => {
-    router.push(`/purchase-success?type=${purchaseType}&session_id=${sessionId}`)
-  }
+  // const handlePaymentSuccess = (sessionId: string) => {
+  //   router.push(`/purchase-success?type=${purchaseType}&session_id=${sessionId}`)
+  // }
 
   if (loading) {
     return (
@@ -491,9 +496,9 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Use & Confidentiality Agreement</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Hi {user.firstName}! Before accessing your complete {user.primaryInfluenceStyle + (user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : '')} influence toolkit, please
-            review and sign this Use & Confidentiality Agreement to protect our proprietary AI-powered system.
-          </p>
+             Hi {user.firstName}! Before accessing The Influence Engine™, please
+             review and sign this Use & Confidentiality Agreement to protect our proprietary AI-powered system.
+           </p>
         </div>
 
         {/* Agreement Content */}
@@ -714,9 +719,70 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
 
 
 
-         {/* Purchase Selection and Payment Form - Always shown at bottom */}
+         {/* NDA Completion Section - Temporarily replacing payment */}
          <div className="mt-8 space-y-8">
-           {/* Purchase Selection */}
+           <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
+             <CardContent className="p-8 text-center">
+               <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
+                 <CheckCircle className="w-8 h-8 text-white" />
+               </div>
+               <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your NDA</h2>
+                <p className="text-gray-600 mb-6">
+                  Once you've read and agreed to the terms above, click the button below to complete your NDA and receive access to The Influence Engine™ via email campaign.
+                </p>
+               
+                <div className="bg-white rounded-lg p-6 border mb-6">
+                  <h3 className="font-bold text-gray-900 mb-4">What You'll Receive:</h3>
+                  <div className="text-left space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                      <span className="text-gray-700">Direct access link to The Influence Engine™</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                      <span className="text-gray-700">AI-powered influence coaching system</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                      <span className="text-gray-700">Personalized conversation guidance</span>
+                    </div>
+                  </div>
+                </div>
+
+               <Button
+                 onClick={handleSignNDA}
+                 disabled={signing || !agreed || !signatureData}
+                 size="lg"
+                 className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+               >
+                 {signing ? (
+                   <div className="flex items-center space-x-2">
+                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                     <span>Completing NDA...</span>
+                   </div>
+                 ) : (
+                   <div className="flex items-center space-x-2">
+                     <CheckCircle className="w-5 h-5" />
+                     <span>Complete NDA & Get Access</span>
+                   </div>
+                 )}
+               </Button>
+
+               {(!agreed || !signatureData) && (
+                 <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                   <p className="text-sm text-yellow-800">
+                     {!agreed && !signatureData && "Please read and agree to the terms, then provide your signature above"}
+                     {agreed && !signatureData && "Please provide your digital signature above"}
+                     {!agreed && signatureData && "Please check the agreement checkbox above"}
+                   </p>
+                 </div>
+               )}
+             </CardContent>
+           </Card>
+         </div>
+
+         {/* TEMPORARILY COMMENTED OUT - Payment Section
+         <div className="mt-8 space-y-8">
            <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
              <CardContent className="p-6">
                <div className="mb-6">
@@ -761,7 +827,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                              </div>
                              <div>
                                <div className="font-semibold flex items-center space-x-2">
-                                 <span>Betty - The Influence Engine™</span>
+                                 <span>The Influence Engine™</span>
                                  <Badge className="bg-[#92278F] text-white text-xs">PREMIUM</Badge>
                                </div>
                                <div className="text-sm text-gray-600">$499.00 • One-time purchase</div>
@@ -811,7 +877,6 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
              </CardContent>
            </Card>
 
-           {/* Payment Form - Always shown */}
            <Card className="border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
              <CardContent className="p-8">
                <div className="text-center mb-8">
@@ -819,7 +884,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                    {purchaseType === "betty" ? <Crown className="w-8 h-8 text-white" /> : <CreditCard className="w-8 h-8 text-white" />}
                  </div>
                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                   {purchaseType === "betty" ? "Betty - The Influence Engine™" : `${user.primaryInfluenceStyle}${user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`}
+                   {purchaseType === "betty" ? "The Influence Engine™" : `${user.primaryInfluenceStyle}${user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`}
                  </h2>
                  <div className={`text-3xl font-bold ${purchaseType === "betty" ? "text-[#92278F]" : "text-green-600"} mb-2`}>
                    ${purchaseType === "betty" ? "499.00" : "19.00"}
@@ -840,6 +905,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
              </CardContent>
            </Card>
          </div>
+         */}
 
       </div>
     </div>

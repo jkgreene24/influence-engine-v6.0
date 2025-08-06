@@ -253,11 +253,10 @@ export default function InfluenceProfile() {
               <Unlock className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              💥 Want your full {primaryStyle.charAt(0).toUpperCase() + primaryStyle.slice(1)}
-              {secondaryStyle && ` + ${secondaryStyle.charAt(0).toUpperCase() + secondaryStyle.slice(1)}`} toolkit?
+              💥 Ready to access The Influence Engine™?
             </h2>
             <p className="text-gray-600 mb-6 text-lg">
-              Unlock the complete profile—built for {primaryStyle} leaders who want to maximize
+              Unlock The Influence Engine™—the AI-powered influence coaching system built for {primaryStyle} leaders who want to maximize
               their influence and impact.
             </p>
             <Button
@@ -265,11 +264,11 @@ export default function InfluenceProfile() {
               size="lg"
               className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 text-lg font-semibold"
             >
-              Access Your Full Toolkit
+              Access The Influence Engine™
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-gray-500 mt-4">
-              Next: Review and sign NDA to access your complete influence toolkit
+              Next: Review and sign NDA to access The Influence Engine™
             </p>
           </CardContent>
         </Card>

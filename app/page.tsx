@@ -18,7 +18,6 @@ export default function ContactPage() {
   const [role, setRole] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   const formatPhoneNumber = (value: string) => {
@@ -102,69 +101,14 @@ export default function ContactPage() {
         throw new Error("Failed to insert user")
       }
 
-      setSuccess(true)
+      // Skip the success state and go directly to quiz
+      router.push("/quick-quiz")
     } catch (err) {
       console.error("Submission error:", err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleContinue = () => {
-    router.push("/quick-quiz")
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center space-x-3">
-                <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                  <p className="text-sm text-gray-600">AI-Powered Leadership Coaching</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8">
-            <Card className="border-2 border-green-200 bg-green-50">
-              <CardContent className="text-center py-8">
-                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Thank you for your interest!</h2>
-                <p className="text-gray-600 mb-6">
-                  We've received your information. Please check your email at <strong>{email}</strong> for a
-                  verification link to continue with your influence style assessment.
-                </p>
-                <div className="mb-6 p-4 bg-white rounded-lg border">
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Next Steps:</strong>
-                  </p>
-                  <ol className="text-sm text-gray-600 text-left space-y-1">
-                    <li>1. Verify your email address</li>
-                    <li>2. Complete your influence style quiz</li>
-                    <li>3. Watch our exclusive demo video</li>
-                    <li>4. Get your personalized snapshot profile</li>
-                  </ol>
-                </div>
-                <Button onClick={handleContinue} className="bg-[#92278F] hover:bg-[#7a1f78] w-full">
-                  Continue to Quiz
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
