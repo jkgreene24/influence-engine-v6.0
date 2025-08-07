@@ -90,7 +90,7 @@ export default function NDASuccessPage() {
               <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">The Influence Engine™</h1>
-                <p className="text-sm text-gray-600">NDA Completed</p>
+                <p className="text-sm text-gray-600">Agreement Completed</p>
               </div>
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function NDASuccessPage() {
             <div className="w-20 h-20 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">🎉 NDA Successfully Signed!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">🎉 Agreement Successfully Signed!</h1>
             <p className="text-xl text-gray-600 mb-6">
               Thank you {user.firstName}! Your Use & Confidentiality Agreement has been completed.
             </p>
@@ -117,7 +117,7 @@ export default function NDASuccessPage() {
               <div className="text-left space-y-3">
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">NDA signed and recorded ✓</span>
+                  <span className="text-gray-700">Agreement signed and recorded ✓</span>
                 </div>
                 <div className="flex items-center space-x-3">
                    <CheckCircle className="w-5 h-5 text-green-500" />

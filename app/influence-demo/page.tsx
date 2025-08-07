@@ -227,7 +227,7 @@ export default function InfluenceDemoPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">See The Influence Engine™ in Action</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
-            Hi {user.firstName}! Watch this 5-minute demo to see how personalized AI coaching can transform your
+            Hi {user.firstName}! Watch this demo to see how personalized AI coaching can transform your
             leadership approach.
           </p>
 

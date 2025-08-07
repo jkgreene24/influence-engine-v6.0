@@ -268,7 +268,7 @@ export default function InfluenceProfile() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-gray-500 mt-4">
-              Next: Review and sign NDA to access The Influence Engine™
+              Next: Review and sign Use & Confidentiality Agreement to access The Influence Engine™
             </p>
           </CardContent>
         </Card>

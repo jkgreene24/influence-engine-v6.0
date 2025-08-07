@@ -567,7 +567,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
 
               <h4 className="font-semibold text-gray-900 mb-2">6. Duration</h4>
               <p className="mb-4">
-                This NDA remains in effect indefinitely — even if the User stops using The Influence Engine™.
+                This Use & Confidentiality Agreement remains in effect indefinitely — even if the User stops using The Influence Engine™.
               </p>
 
               <h4 className="font-semibold text-gray-900 mb-2">7. Agreement</h4>
@@ -667,9 +667,9 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
                  <CheckCircle className="w-8 h-8 text-white" />
                </div>
-               <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your NDA</h2>
+               <h2 className="text-2xl font-bold text-gray-900 mb-4">Complete Your Use & Confidentiality Agreement</h2>
                 <p className="text-gray-600 mb-6">
-                  Once you've read and agreed to the terms above, click the button below to complete your NDA and receive access to The Influence Engine™ via email campaign.
+                  Once you've read and agreed to the terms above, click the button below to confirm your agreement and receive access to The Influence Engine™ via email campaign.
                 </p>
                
                 <div className="bg-white rounded-lg p-6 border mb-6">
@@ -699,12 +699,12 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                  {signing ? (
                    <div className="flex items-center space-x-2">
                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                     <span>Completing NDA...</span>
+                     <span>Completing Use & Confidentiality Agreement...</span>
                    </div>
                  ) : (
                    <div className="flex items-center space-x-2">
                      <CheckCircle className="w-5 h-5" />
-                     <span>Complete NDA & Get Access</span>
+                     <span>Complete Agreement & Get Access</span>
                    </div>
                  )}
                </Button>
