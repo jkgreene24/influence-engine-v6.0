@@ -110,29 +110,25 @@ export default function NDASuccessPage() {
               Thank you {user.firstName}! Your Use & Confidentiality Agreement has been completed.
             </p>
 
-            <Badge className="bg-[#92278F] text-white text-lg px-4 py-2 mb-6">ACCESS GRANTED</Badge>
+                         <Badge className="bg-[#92278F] text-white text-lg px-4 py-2 mb-6">AGREEMENT COMPLETED</Badge>
 
-            <div className="bg-white rounded-lg p-6 mb-8 border">
-              <h3 className="font-bold text-gray-900 mb-4">What's Next:</h3>
-              <div className="text-left space-y-3">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Agreement signed and recorded ✓</span>
-                </div>
-                <div className="flex items-center space-x-3">
+                         <div className="bg-white rounded-lg p-6 mb-8 border">
+               <h3 className="font-bold text-gray-900 mb-4">What's Next:</h3>
+               <div className="text-left space-y-3">
+                 <div className="flex items-center space-x-3">
                    <CheckCircle className="w-5 h-5 text-green-500" />
-                   <span className="text-gray-700">Access granted to The Influence Engine™ ✓</span>
+                   <span className="text-gray-700">Agreement signed and recorded ✓</span>
                  </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Email campaign preparation ✓</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                  <span className="text-gray-700">Email campaign coming soon</span>
-                </div>
-              </div>
-            </div>
+                 <div className="flex items-center space-x-3">
+                   <CheckCircle className="w-5 h-5 text-green-500" />
+                   <span className="text-gray-700">Email campaign preparation ✓</span>
+                 </div>
+                 <div className="flex items-center space-x-3">
+                   <Clock className="w-5 h-5 text-blue-500" />
+                   <span className="text-gray-700">Access link coming via email campaign</span>
+                 </div>
+               </div>
+             </div>
 
             {/* User's Style Display */}
             {user.primaryInfluenceStyle && (
