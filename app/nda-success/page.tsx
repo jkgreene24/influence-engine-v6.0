@@ -166,39 +166,6 @@ export default function NDASuccessPage() {
               </Card>
             )}
 
-            {/* Email Campaign Information */}
-            <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Email Campaign Coming Soon</h2>
-                   <p className="text-gray-600 mb-6">
-                     We're preparing a personalized email campaign with access to The Influence Engine™.
-                   </p>
-                </div>
-                
-                <div className="bg-white rounded-lg p-6 border">
-                   <h3 className="font-bold text-gray-900 mb-4">What You'll Receive:</h3>
-                   <div className="text-left space-y-3">
-                     <div className="flex items-center space-x-3">
-                       <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                       <span className="text-gray-700">Direct access link to The Influence Engine™</span>
-                     </div>
-                     <div className="flex items-center space-x-3">
-                       <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                       <span className="text-gray-700">AI-powered influence coaching system</span>
-                     </div>
-                     <div className="flex items-center space-x-3">
-                       <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                       <span className="text-gray-700">Personalized conversation guidance</span>
-                     </div>
-                   </div>
-                 </div>
-              </CardContent>
-            </Card>
-
             <Button
               onClick={() => router.push("/")}
               size="lg"

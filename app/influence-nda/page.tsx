@@ -687,6 +687,10 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                       <CheckCircle className="w-5 h-5 text-[#92278F]" />
                       <span className="text-gray-700">Personalized conversation guidance</span>
                     </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#92278F]" />
+                      <span className="text-gray-700">Access to private Slack community</span>
+                    </div>
                   </div>
                 </div>
 
