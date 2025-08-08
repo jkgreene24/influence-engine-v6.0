@@ -394,7 +394,7 @@ export default function ContactPage() {
             <span className="text-lg font-bold">The Influence Engine™</span>
           </div>
           <p className="text-gray-400">AI-powered leadership coaching that adapts to your unique influence style.</p>
-          <p className="text-gray-500 text-sm mt-4">&copy; 2024 The Influence Engine™. All rights reserved.</p>
+          <p className="text-gray-500 text-sm mt-4">&copy; 2025 The Influence Engine™. All rights reserved.</p>
         </div>
       </footer>
     </div>
