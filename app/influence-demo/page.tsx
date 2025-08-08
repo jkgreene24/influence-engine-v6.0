@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, ArrowRight, Play, CheckCircle, Zap, Users, Navigation, Anchor, Link, Pause } from "lucide-react"
+import CustomVideoPlayer from "./components/CustomVideoPlayer"
 import { useRouter } from "next/navigation"
 
 export default function InfluenceDemoPage() {
@@ -12,11 +13,17 @@ export default function InfluenceDemoPage() {
   const [videoWatched, setVideoWatched] = useState(false)
   const [watchTime, setWatchTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [wasPlayingBeforeDrag, setWasPlayingBeforeDrag] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const progressRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   // Demo video URL - replace with your actual video URL
-  const videoUrl = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || ""
+  // Using a known-good fallback MP4 URL for reliability
+  const videoUrl = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
 
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
@@ -42,6 +49,10 @@ export default function InfluenceDemoPage() {
   // Test video URL accessibility
   useEffect(() => {
     console.log("Testing video URL:", videoUrl)
+    console.log("Current duration:", duration)
+    console.log("Current watchTime:", watchTime)
+    console.log("Current isPlaying:", isPlaying)
+    
     fetch(videoUrl, { method: 'HEAD' })
       .then(response => {
         console.log("Video URL status:", response.status, response.ok)
@@ -49,11 +60,19 @@ export default function InfluenceDemoPage() {
       .catch(error => {
         console.error("Video URL error:", error)
       })
-  }, [videoUrl])
+  }, [videoUrl, duration, watchTime, isPlaying])
 
   const handleVideoEnd = async () => {
     console.log("handleVideoEnd called - setting videoWatched to true")
     setVideoWatched(true)
+    setIsPlaying(false)
+    
+    // Reset video to beginning
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0
+      setCurrentTime(0)
+      setWatchTime(0)
+    }
 
     // Update user data
     const updatedUser = {
@@ -93,9 +112,10 @@ export default function InfluenceDemoPage() {
     if (!video) return
 
     const handleTimeUpdate = () => {
-      if (video.duration) {
+      if (video.duration && !isDragging) {
         const progress = (video.currentTime / video.duration) * 100
         setWatchTime(Math.round(progress))
+        setCurrentTime(video.currentTime)
         
         // Check if video is near the end (within 1 second)
         if (video.currentTime >= video.duration - 1) {
@@ -107,6 +127,7 @@ export default function InfluenceDemoPage() {
 
     const handleLoadedMetadata = () => {
       console.log("Video metadata loaded - duration:", video.duration)
+      setDuration(video.duration)
     }
 
     const handleEnded = () => {
@@ -123,11 +144,34 @@ export default function InfluenceDemoPage() {
       console.log("Video can play")
     }
 
+    const handlePlay = () => {
+      setIsPlaying(true)
+    }
+
+    const handlePause = () => {
+      setIsPlaying(false)
+    }
+
+    const handleSeeking = () => {
+      console.log("Video seeking event fired")
+    }
+
+    const handleSeeked = () => {
+      console.log("Video seeked event fired, currentTime:", video.currentTime)
+      setCurrentTime(video.currentTime)
+      const progress = (video.currentTime / video.duration) * 100
+      setWatchTime(Math.round(progress))
+    }
+
     video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
     video.addEventListener('ended', handleEnded)
     video.addEventListener('error', handleError)
     video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('play', handlePlay)
+    video.addEventListener('pause', handlePause)
+    video.addEventListener('seeking', handleSeeking)
+    video.addEventListener('seeked', handleSeeked)
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate)
@@ -135,20 +179,139 @@ export default function InfluenceDemoPage() {
       video.removeEventListener('ended', handleEnded)
       video.removeEventListener('error', handleError)
       video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('play', handlePlay)
+      video.removeEventListener('pause', handlePause)
+      video.removeEventListener('seeking', handleSeeking)
+      video.removeEventListener('seeked', handleSeeked)
     }
-  }, [])
+  }, [isDragging])
 
-  const togglePlayPause = () => {
+  // Global mouse event listeners for dragging
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      
+      const video = videoRef.current
+      const progressBar = progressRef.current
+      if (!video || !progressBar || !duration) return
+      // Allow seeking regardless of readyState when duration exists
+
+      const rect = progressBar.getBoundingClientRect()
+      const mouseX = e.clientX - rect.left
+      const progressWidth = rect.width
+      const clickPercent = Math.max(0, Math.min(1, mouseX / progressWidth))
+      const newTime = clickPercent * duration
+
+      video.currentTime = newTime
+      setCurrentTime(newTime)
+      const progress = (newTime / duration) * 100
+      setWatchTime(Math.round(progress))
+    }
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false)
+      // Resume playback if it was playing before dragging
+      const video = videoRef.current
+      if (video && wasPlayingBeforeDrag) {
+        video.play().catch(() => {})
+      }
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove)
+      document.addEventListener('mouseup', handleGlobalMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove)
+      document.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [isDragging, duration])
+
+  const togglePlayPause = async () => {
     const video = videoRef.current
     if (!video) return
 
-    if (isPlaying) {
-      video.pause()
-      setIsPlaying(false)
-    } else {
-      video.play()
-      setIsPlaying(true)
+    try {
+      if (isPlaying) {
+        video.pause()
+      } else {
+        await video.play()
+      }
+    } catch (error) {
+      console.error("Error toggling video play/pause:", error)
     }
+  }
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  }
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const video = videoRef.current
+    const progressBar = progressRef.current
+    if (!video || !progressBar || !duration) {
+      console.log("Cannot seek: video=", !!video, "progressBar=", !!progressBar, "duration=", duration)
+      return
+    }
+
+    const rect = progressBar.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const progressWidth = rect.width
+    const clickPercent = Math.max(0, Math.min(1, clickX / progressWidth))
+    const newTime = clickPercent * duration
+
+    console.log("Seeking to:", newTime, "seconds (", clickPercent * 100, "% of", duration, "seconds)")
+
+    // Set the video time
+    video.currentTime = newTime
+    
+    // Update state immediately
+    setCurrentTime(newTime)
+    const progress = (newTime / duration) * 100
+    setWatchTime(Math.round(progress))
+    
+    // Force a small delay to ensure the seeking takes effect
+    setTimeout(() => {
+      console.log("Video currentTime after seeking:", video.currentTime)
+    }, 100)
+  }
+
+  const handleProgressMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+    // Immediately seek to the clicked position
+    handleProgressClick(e)
+  }
+
+  const handleProgressMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isDragging) return
+    
+    const video = videoRef.current
+    const progressBar = progressRef.current
+    if (!video || !progressBar || !duration) return
+
+    const rect = progressBar.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const progressWidth = rect.width
+    const clickPercent = Math.max(0, Math.min(1, mouseX / progressWidth))
+    const newTime = clickPercent * duration
+
+    video.currentTime = newTime
+    setCurrentTime(newTime)
+    const progress = (newTime / duration) * 100
+    setWatchTime(Math.round(progress))
   }
 
   const getStyleIcon = (style: string) => {
@@ -263,66 +426,11 @@ export default function InfluenceDemoPage() {
         {/* Video Section */}
         <Card className="mb-8">
           <CardContent className="p-0">
-            <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
-              {/* Actual Video Player */}
-              <video
-                ref={videoRef}
-                className="w-full h-full object-cover"
-                controls={false}
-                preload="metadata"
-                onLoadStart={() => console.log("Video load started")}
-                onLoadedData={() => console.log("Video data loaded")}
-                onCanPlay={() => console.log("Video can play")}
-                onPlay={() => console.log("Video started playing")}
-                onPause={() => console.log("Video paused")}
-                onEnded={() =>{ console.log("Video ended"), handleVideoEnd()}}
-                onError={(e) => console.error("Video error:", e)}
-              >
-                <source src={videoUrl} type="video/mp4" />
-                <source src={videoUrl} type="video/webm" />
-                <source src={videoUrl} type="video/ogg" />
-                Your browser does not support the video tag.
-              </video>
-
-              {/* Custom Video Controls Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                {!isPlaying && (
-                  <div className="text-center">
-                    <Button 
-                      onClick={togglePlayPause}
-                      size="lg"
-                      className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-4 rounded-full shadow-lg mb-4"
-                    >
-                      <Play className="w-8 h-8 mr-2" />
-                      Play Demo Video
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Video Progress Bar */}
-              {isPlaying && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-4">
-                  <div className="flex items-center space-x-3 text-white text-sm">
-                    <Button
-                      onClick={togglePlayPause}
-                      variant="ghost"
-                      size="sm"
-                      className="text-white hover:bg-white/20"
-                    >
-                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    </Button>
-                    <div className="flex-1 bg-gray-600 rounded-full h-2">
-                      <div
-                        className="bg-[#92278F] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${watchTime}%` }}
-                      ></div>
-                    </div>
-                    <span>{watchTime}%</span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <CustomVideoPlayer
+              videoUrl={videoUrl}
+              title="Demo Video"
+              onEnded={handleVideoEnd}
+            />
           </CardContent>
         </Card>
 
