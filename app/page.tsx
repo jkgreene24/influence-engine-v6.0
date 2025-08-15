@@ -2,12 +2,15 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Mail, Phone, User, CheckCircle, Star, Zap, Users, Target, Navigation, Anchor, Link } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { INITIAL_FUNNEL_STATE, saveFunnelState, type SourceTracking } from "@/lib/utils/funnel-state"
+import { automationHelpers } from "@/lib/utils/mock-automation"
 
 export default function ContactPage() {
   const [firstName, setFirstName] = useState("")
@@ -16,9 +19,38 @@ export default function ContactPage() {
   const [phone, setPhone] = useState("")
   const [company, setCompany] = useState("")
   const [role, setRole] = useState("")
+  const [source, setSource] = useState("")
+  const [reiaName, setReiaName] = useState("")
+  const [socialPlatform, setSocialPlatform] = useState("")
+  const [referrerName, setReferrerName] = useState("")
+  const [wordOfMouth, setWordOfMouth] = useState("")
+  const [otherSource, setOtherSource] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Initialize funnel state and capture URL parameters
+  useEffect(() => {
+    const funnelState = { ...INITIAL_FUNNEL_STATE }
+    
+    // Capture UTM parameters
+    const utmSource = searchParams.get('utm_source')
+    const utmMedium = searchParams.get('utm_medium')
+    const utmCampaign = searchParams.get('utm_campaign')
+    const src = searchParams.get('src')
+    
+    // Set source tracking
+    const sourceTracking: SourceTracking = {
+      utmSource: utmSource || undefined,
+      utmMedium: utmMedium || undefined,
+      utmCampaign: utmCampaign || undefined,
+      srcBook: src === 'book',
+    }
+    
+    funnelState.sourceTracking = sourceTracking
+    saveFunnelState(funnelState)
+  }, [searchParams])
 
   const formatPhoneNumber = (value: string) => {
     const phoneNumber = value.replace(/\D/g, "")
@@ -42,8 +74,27 @@ export default function ContactPage() {
     setError(null)
 
     // Validation
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !source) {
       setError("Please fill in all required fields")
+      setLoading(false)
+      return
+    }
+
+    // Validate conditional required fields
+    if (source === 'REIA Event' && !reiaName.trim()) {
+      setError("Please enter the REIA name")
+      setLoading(false)
+      return
+    }
+
+    if (source === 'Social Media' && !socialPlatform) {
+      setError("Please select a social media platform")
+      setLoading(false)
+      return
+    }
+
+    if (source === 'Referral' && !referrerName.trim()) {
+      setError("Please enter the referrer name")
       setLoading(false)
       return
     }
@@ -63,6 +114,30 @@ export default function ContactPage() {
     }
 
     try {
+      // Update funnel state with user data and source tracking
+      const funnelState = { ...INITIAL_FUNNEL_STATE }
+      funnelState.userData = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phoneDigits,
+        company: company.trim(),
+        role: role.trim(),
+      }
+      
+      // Add source tracking data
+      funnelState.sourceTracking = {
+        ...funnelState.sourceTracking,
+        source,
+        reiaName: source === 'REIA Event' ? reiaName : undefined,
+        socialPlatform: source === 'Social Media' ? socialPlatform : undefined,
+        referrerName: source === 'Referral' ? referrerName : undefined,
+        wordOfMouth: source === 'Word of Mouth' ? wordOfMouth : undefined,
+        otherSource: source === 'Other' ? otherSource : undefined,
+      }
+      
+      saveFunnelState(funnelState)
+
       // Save user data
       const userData = {
         firstName: firstName.trim(),
@@ -101,8 +176,15 @@ export default function ContactPage() {
         throw new Error("Failed to insert user")
       }
 
-      // Skip the success state and go directly to quiz
-      router.push("/quick-quiz")
+      // Tag lead source in automation
+      try {
+        await automationHelpers.tagLeadSource(email.trim(), funnelState.sourceTracking)
+      } catch (error) {
+        console.error('Failed to tag lead source:', error)
+      }
+
+      // Go to funnel
+      router.push("/funnel")
     } catch (err) {
       console.error("Submission error:", err)
       setError("An unexpected error occurred. Please try again.")
@@ -294,6 +376,111 @@ export default function ContactPage() {
                     className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
                   />
                 </div>
+
+                {/* Source Tracking */}
+                <div>
+                  <label htmlFor="source" className="block text-sm font-medium text-gray-700 mb-2">
+                    How did you hear about us? <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={source} onValueChange={setSource} required>
+                    <SelectTrigger className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="REIA Event">REIA Event</SelectItem>
+                      <SelectItem value="Social Media">Social Media</SelectItem>
+                      <SelectItem value="Referral">Referral</SelectItem>
+                      <SelectItem value="Word of Mouth">Word of Mouth</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Conditional source fields */}
+                {source === 'REIA Event' && (
+                  <div>
+                    <label htmlFor="reiaName" className="block text-sm font-medium text-gray-700 mb-2">
+                      REIA Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="reiaName"
+                      type="text"
+                      value={reiaName}
+                      onChange={(e) => setReiaName(e.target.value)}
+                      placeholder="Enter REIA name"
+                      className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
+                      required
+                    />
+                  </div>
+                )}
+
+                {source === 'Social Media' && (
+                  <div>
+                    <label htmlFor="socialPlatform" className="block text-sm font-medium text-gray-700 mb-2">
+                      Platform <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={socialPlatform} onValueChange={setSocialPlatform} required>
+                      <SelectTrigger className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]">
+                        <SelectValue placeholder="Select platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Facebook">Facebook</SelectItem>
+                        <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                        <SelectItem value="Instagram">Instagram</SelectItem>
+                        <SelectItem value="TikTok">TikTok</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {source === 'Referral' && (
+                  <div>
+                    <label htmlFor="referrerName" className="block text-sm font-medium text-gray-700 mb-2">
+                      Referrer Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="referrerName"
+                      type="text"
+                      value={referrerName}
+                      onChange={(e) => setReferrerName(e.target.value)}
+                      placeholder="Who referred you?"
+                      className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
+                      required
+                    />
+                  </div>
+                )}
+
+                {source === 'Word of Mouth' && (
+                  <div>
+                    <label htmlFor="wordOfMouth" className="block text-sm font-medium text-gray-700 mb-2">
+                      Additional Details (Optional)
+                    </label>
+                    <Input
+                      id="wordOfMouth"
+                      type="text"
+                      value={wordOfMouth}
+                      onChange={(e) => setWordOfMouth(e.target.value)}
+                      placeholder="How did you hear about us?"
+                      className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
+                    />
+                  </div>
+                )}
+
+                {source === 'Other' && (
+                  <div>
+                    <label htmlFor="otherSource" className="block text-sm font-medium text-gray-700 mb-2">
+                      Please Specify (Optional)
+                    </label>
+                    <Input
+                      id="otherSource"
+                      type="text"
+                      value={otherSource}
+                      onChange={(e) => setOtherSource(e.target.value)}
+                      placeholder="How did you hear about us?"
+                      className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
+                    />
+                  </div>
+                )}
 
                 {/* Privacy Notice */}
                 <div className="bg-gray-50 p-4 rounded-lg border">

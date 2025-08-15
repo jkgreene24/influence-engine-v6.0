@@ -1,0 +1,135 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { loadFunnelState, saveFunnelState, type FunnelState } from "@/lib/utils/funnel-state"
+import QuizEntry from "./components/QuizEntry"
+import QuizResults from "./components/QuizResults"
+import ToolkitOffer from "./components/ToolkitOffer"
+import BookOffer from "./components/BookOffer"
+import IEOffer from "./components/IEOffer"
+import BundleOffer from "./components/BundleOffer"
+import Checkout from "./components/Checkout"
+import Success from "./components/Success"
+
+export default function FunnelPage() {
+  const [funnelState, setFunnelState] = useState<FunnelState | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Load funnel state from localStorage
+    const savedState = loadFunnelState()
+    if (!savedState) {
+      // If no funnel state, redirect to entry
+      router.push("/")
+      return
+    }
+    
+    // Check for URL parameters to override step
+    const urlParams = new URLSearchParams(window.location.search)
+    const stepParam = urlParams.get('step')
+    
+    if (stepParam && savedState.step !== stepParam) {
+      savedState.step = stepParam as any
+      saveFunnelState(savedState)
+    }
+    
+    setFunnelState(savedState)
+    setLoading(false)
+  }, [router])
+
+  const updateFunnelState = (newState: Partial<FunnelState>) => {
+    if (funnelState) {
+      const updatedState = { ...funnelState, ...newState }
+      setFunnelState(updatedState)
+      saveFunnelState(updatedState)
+    }
+  }
+
+  const goToNextStep = () => {
+    if (!funnelState) return
+    
+    const nextStep = getNextStep(funnelState)
+    updateFunnelState({ step: nextStep })
+  }
+
+  const getNextStep = (state: FunnelState): FunnelState['step'] => {
+    switch (state.step) {
+      case 'entry':
+        return 'quiz'
+      case 'quiz':
+        return 'results'
+      case 'results':
+        return 'toolkit-offer'
+      case 'toolkit-offer':
+        if (state.wantsToolkit) {
+          return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer'
+        } else {
+          return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer'
+        }
+      case 'book-offer':
+        return 'ie-offer'
+      case 'ie-offer':
+        if (state.wantsIE) {
+          return 'checkout'
+        } else {
+          return shouldShowBundleOffer(state) ? 'bundle-offer' : 'checkout'
+        }
+      case 'bundle-offer':
+        return 'checkout'
+      case 'checkout':
+        return 'success'
+      default:
+        return 'entry'
+    }
+  }
+
+  const shouldShowBookOffer = (state: FunnelState): boolean => {
+    return !state.sourceTracking.srcBook && !state.wantsBook && !state.declinedBook
+  }
+
+  const shouldShowBundleOffer = (state: FunnelState): boolean => {
+    const declinedCount = [state.declinedToolkit, state.declinedBook, state.declinedIE].filter(Boolean).length
+    return declinedCount >= 2 && !state.wantsIE && !state.wantsBundle
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#92278F] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your assessment...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!funnelState) {
+    return null
+  }
+
+  // Render the appropriate step component
+  switch (funnelState.step) {
+    case 'entry':
+      return <QuizEntry funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'quiz':
+      return <QuizResults funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'results':
+      return <QuizResults funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'toolkit-offer':
+      return <ToolkitOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'book-offer':
+      return <BookOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'ie-offer':
+      return <IEOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'bundle-offer':
+      return <BundleOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'checkout':
+      return <Checkout funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+    case 'success':
+      return <Success funnelState={funnelState} updateFunnelState={updateFunnelState} />
+    default:
+      return <QuizEntry funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+  }
+}
