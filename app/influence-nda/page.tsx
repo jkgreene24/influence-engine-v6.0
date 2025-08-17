@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 // import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ArrowLeft, ArrowRight, FileText, Shield, CheckCircle, RotateCcw, Pen, Zap, Users, Navigation, Link, Anchor, Crown } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { replacePricingTokens, PRICING_TOKENS } from "@/lib/utils/pricing"
 // import { loadStripe } from "@stripe/stripe-js"
 // import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
@@ -79,7 +80,7 @@ function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onS
       }
 
       // Process payment
-      const amount = purchaseType === "betty" ? 49900 : 1900 // Amount in cents
+      const amount = purchaseType === "betty" ? PRICING_TOKENS.IE_Annual * 100 : PRICING_TOKENS.Book * 100 // Amount in cents
       
       const response = await fetch("/api/process-payment", {
         method: "POST",
@@ -217,7 +218,7 @@ function PaymentForm({ user, purchaseType, onSuccess, agreed, signatureData, onS
          ) : (
            <div className="flex items-center space-x-2">
              <CreditCard className="w-5 h-5" />
-             <span>Complete Purchase - ${purchaseType === "betty" ? "499.00" : "19.00"}</span>
+             <span>Complete Purchase - {purchaseType === "betty" ? replacePricingTokens("[PRICE:IE_Annual]") : replacePricingTokens("[PRICE:Book]")}</span>
            </div>
          )}
        </Button>
@@ -755,7 +756,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                                  {user.primaryInfluenceStyle}
                                  {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Toolkit
                                </div>
-                               <div className="text-sm text-gray-600">$19.00 • One-time purchase</div>
+                               <div className="text-sm text-gray-600">{replacePricingTokens("[PRICE:Book]")} • One-time purchase</div>
                              </div>
                            </div>
                          </Label>
@@ -775,7 +776,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                                  <span>The Influence Engine™</span>
                                  <Badge className="bg-[#92278F] text-white text-xs">PREMIUM</Badge>
                                </div>
-                               <div className="text-sm text-gray-600">$499.00 • One-time purchase</div>
+                               <div className="text-sm text-gray-600">{replacePricingTokens("[PRICE:IE_Annual]")} • One-time purchase</div>
                              </div>
                            </div>
                          </Label>
@@ -832,7 +833,7 @@ const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanv
                    {purchaseType === "betty" ? "The Influence Engine™" : `${user.primaryInfluenceStyle}${user.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} Toolkit`}
                  </h2>
                  <div className={`text-3xl font-bold ${purchaseType === "betty" ? "text-[#92278F]" : "text-green-600"} mb-2`}>
-                   ${purchaseType === "betty" ? "499.00" : "19.00"}
+                   {purchaseType === "betty" ? replacePricingTokens("[PRICE:IE_Annual]") : replacePricingTokens("[PRICE:Book]")}
                  </div>
                  <p className="text-gray-600">One-time purchase • Secure payment</p>
                </div>

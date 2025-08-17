@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight, Zap, Users, Anchor, Link, Navigation, MessageCircle } from "lucide-react"
 import { type FunnelState } from "@/lib/utils/funnel-state"
 import { automationHelpers } from "@/lib/utils/mock-automation"
+import { localDB } from "@/lib/utils/local-storage-db"
 
 interface QuizQuestion {
   id: string
@@ -172,14 +173,42 @@ export default function QuizEntry({ funnelState, updateFunnelState, goToNextStep
       step: 'results'
     })
     
-    // Tag quiz completion in automation
+    // Save quiz results to localStorage database
     try {
       if (funnelState.userData?.email) {
+        // Get or create user
+        let user = await localDB.users.getByEmail(funnelState.userData.email)
+        if (!user) {
+          user = await localDB.users.create({
+            firstName: funnelState.userData.firstName,
+            lastName: funnelState.userData.lastName,
+            email: funnelState.userData.email,
+            phone: funnelState.userData.phone,
+            company: funnelState.userData.company,
+            role: funnelState.userData.role,
+          })
+        }
+
+        // Save quiz result
+        await localDB.quiz.create({
+          userId: user.id,
+          influenceStyle: primaryStyle,
+          secondaryStyle: secondaryStyle,
+          answers: answers,
+        })
+
+        // Update user with influence style
+        await localDB.users.update(user.id, {
+          influenceStyle: primaryStyle,
+          secondaryStyle: secondaryStyle,
+        })
+
+        // Tag quiz completion in automation
         await automationHelpers.tagQuizEvents(funnelState.userData.email, primaryStyle)
         await automationHelpers.tagQuizCompletion(funnelState.userData.email)
       }
     } catch (error) {
-      console.error('Failed to tag quiz events:', error)
+      console.error('Failed to save quiz results:', error)
     }
     
     // Move to next step

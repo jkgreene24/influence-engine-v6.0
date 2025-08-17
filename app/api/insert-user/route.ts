@@ -1,32 +1,33 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { toDbFormat } from "@/lib/utils/db-conversions";
+import { localDB } from "@/lib/utils/local-storage-db";
 
 export async function POST(request: Request) {
   try {
-    console.log("Environment variables check:");
-    console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing");
-    console.log("SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "Set" : "Missing");
-    
-    const supabase = await createClient();
     const body = await request.json();
     
-    // Convert frontend format to database format
-    const dbData = toDbFormat(body);
+    console.log("Inserting new user:", body);
     
-    console.log("Attempting to insert:", dbData);
+    // Create user in localStorage database
+    const user = await localDB.users.create({
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      phone: body.phone || '',
+      company: body.company || '',
+      role: body.role || '',
+      emailVerified: body.emailVerified ?? false,
+      quizCompleted: body.quizCompleted ?? false,
+      demoWatched: body.demoWatched ?? false,
+      ndaSigned: body.ndaSigned ?? false,
+      signatureData: body.signatureData || '',
+      paidAt: body.paidAt || '',
+      paidFor: body.paidFor || '',
+    });
     
-    const { data, error } = await supabase.from("influence_users").insert(dbData).select();
+    console.log("User created successfully:", user);
     
-    if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    
-    console.log("Insert successful:", data);
-    
-    // Return the inserted data
-    return NextResponse.json({ success: true, data });
+    // Return the created user
+    return NextResponse.json({ success: true, data: user });
   } catch (error) {
     console.error("Route error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

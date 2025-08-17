@@ -1,12 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { toDbFormat } from "@/lib/utils/db-conversions";
+import { localDB } from "@/lib/utils/local-storage-db";
 
 export async function POST(request: Request) {
   try {
     console.log("Update user request received");
     
-    const supabase = await createClient();
     const body = await request.json();
     
     console.log("Request body:", { 
@@ -16,27 +14,25 @@ export async function POST(request: Request) {
       hasSignatureData: !!body.signatureData,
     });
     
-    const user = toDbFormat(body);
-    console.log("Converted to DB format:", { 
-      id: user.id,
-      email: user.email, 
-      nda_signed: user.nda_signed,
-      has_signature_url: !!user.signature_url,
-    });
+    // Prepare updates for localStorage
+    const updates: any = {};
+    if (body.ndaSigned !== undefined) updates.ndaSigned = body.ndaSigned;
+    if (body.signatureData !== undefined) updates.signatureData = body.signatureData;
+    if (body.influenceStyle !== undefined) updates.influenceStyle = body.influenceStyle;
+    if (body.quizCompleted !== undefined) updates.quizCompleted = body.quizCompleted;
+    if (body.demoWatched !== undefined) updates.demoWatched = body.demoWatched;
+    if (body.paidAt !== undefined) updates.paidAt = body.paidAt;
     
-    const { data, error } = await supabase
-      .from("influence_users")
-      .update(user)
-      .eq("id", body.id)
-      .select();
-      
-    if (error) {
-      console.error("Supabase update error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    console.log("Updates to apply:", updates);
+    
+    const updatedUser = await localDB.users.update(body.id, updates);
+    
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     
-    console.log("User updated successfully:", data);
-    return NextResponse.json({ success: true, data });
+    console.log("User updated successfully:", updatedUser);
+    return NextResponse.json({ success: true, data: updatedUser });
   } catch (error) {
     console.error("Route error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

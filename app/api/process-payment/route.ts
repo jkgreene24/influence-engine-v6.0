@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@/lib/supabase/server";
+import { localDB } from "@/lib/utils/local-storage-db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-07-30.basil",
@@ -46,25 +46,26 @@ export async function POST(request: Request) {
     console.log("Payment intent created:", paymentIntent.id);
 
     if (paymentIntent.status === 'succeeded') {
-      // Update payment status in database
+      // Update payment status in localStorage
       try {
-        const supabase = await createClient();
         const paidFor = purchaseType === "betty" ? "betty" : "toolkit";
         
-        const { data, error } = await supabase
-          .from("influence_users")
-          .update({ 
-            paid_at: new Date().toISOString(),
-            paid_for: paidFor
-          })
-          .eq("id", userId)
-          .select();
-          
-        if (error) {
-          console.error("Failed to update payment status:", error);
-        } else {
-          console.log("Payment status updated successfully for user ID:", userId);
-        }
+        // Create purchase record in localStorage
+        await localDB.purchases.create({
+          userId: userId,
+          products: [purchaseType],
+          total: amount / 100, // Convert from cents to dollars
+          status: 'completed',
+          stripeSessionId: paymentIntent.id,
+        });
+
+        // Update user payment status
+        await localDB.users.update(userId, {
+          paidAt: new Date().toISOString(),
+          paidFor: paidFor
+        });
+        
+        console.log("Payment status updated successfully for user ID:", userId);
       } catch (error) {
         console.error("Error updating payment status:", error);
       }
