@@ -203,6 +203,7 @@ export function declineProduct(state: FunnelState, productKey: string): FunnelSt
 // Local storage helpers
 export function saveFunnelState(state: FunnelState): void {
   if (typeof window !== 'undefined') {
+    console.log('Saving funnel state to localStorage:', state)
     localStorage.setItem('influence_funnel_state', JSON.stringify(state));
   }
 }
@@ -210,6 +211,7 @@ export function saveFunnelState(state: FunnelState): void {
 export function loadFunnelState(): FunnelState | null {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('influence_funnel_state');
+    console.log('Loading funnel state from localStorage:', saved)
     return saved ? JSON.parse(saved) : null;
   }
   return null;

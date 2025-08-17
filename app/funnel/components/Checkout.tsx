@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { CheckCircle, ArrowRight, Package, Crown, BookOpen, FileText, CreditCard } from "lucide-react"
 import { type FunnelState } from "@/lib/utils/funnel-state"
-import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
+import { getProduct, replacePricingTokens, PRODUCTS } from "@/lib/utils/pricing"
 import { generateSourceTags } from "@/lib/utils/funnel-state"
 import { automationHelpers } from "@/lib/utils/mock-automation"
 
@@ -23,9 +23,27 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const cartItems = funnelState.cart.map(item => getProduct(item as any))
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0)
+  // Debug logging for each cart item
+  console.log('Funnel State Cart:', funnelState.cart)
+  console.log('Full Funnel State:', funnelState)
+  console.log('LocalStorage funnel state:', localStorage.getItem('influence_funnel_state'))
+  console.log('Available products:', Object.keys(PRODUCTS))
+  console.log('Test getProduct("Book"):', getProduct('Book'))
+  console.log('Test getProduct("Toolkit"):', getProduct('Toolkit'))
+  console.log('Test getProduct("IE_Annual"):', getProduct('IE_Annual'))
+  
+  const total = funnelState.cart.reduce((sum, cartItem) => {
+    console.log('Processing cart item:', cartItem)
+    const product = getProduct(cartItem as any)
+    console.log('Product found:', product)
+    const price = product?.price || 0
+    console.log('Price for', cartItem, ':', price)
+    return sum + price
+  }, 0)
+  
   const hasIE = funnelState.cart.includes('IE_Annual')
+  console.log('Total:', total)
+  console.log('Has IE:', hasIE)
 
   const handleCheckout = async () => {
     if (!agreementChecked) {
@@ -158,24 +176,49 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {cartItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[#92278F] rounded-full flex items-center justify-center text-white">
-                      {getItemIcon(funnelState.cart[index])}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{item.name}</h4>
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {replacePricingTokens(`[PRICE:${funnelState.cart[index]}]`)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                             {funnelState.cart.map((cartItem, index) => {
+                 console.log('Displaying cart item:', cartItem, 'at index:', index)
+                 const product = getProduct(cartItem as any)
+                 console.log('Product for display:', product)
+                                  if (!product) {
+                   console.warn(`Product not found for cart item: ${cartItem}`)
+                   // Show a fallback item if product not found
+                   return (
+                     <div key={index} className="flex items-center justify-between p-3 border border-red-200 rounded-lg bg-red-50">
+                       <div className="flex items-center space-x-3">
+                         <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">
+                           <Package className="w-5 h-5" />
+                         </div>
+                         <div>
+                           <h4 className="font-medium text-gray-900">Unknown Product: {cartItem}</h4>
+                           <p className="text-sm text-red-600">Product configuration missing</p>
+                         </div>
+                       </div>
+                       <div className="text-right">
+                         <p className="font-semibold text-red-600">$0</p>
+                       </div>
+                     </div>
+                   )
+                 }
+                 return (
+                   <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                     <div className="flex items-center space-x-3">
+                       <div className="w-8 h-8 bg-[#92278F] rounded-full flex items-center justify-center text-white">
+                         {getItemIcon(cartItem)}
+                       </div>
+                       <div>
+                         <h4 className="font-medium text-gray-900">{product.name}</h4>
+                         <p className="text-sm text-gray-600">{product.description}</p>
+                       </div>
+                     </div>
+                     <div className="text-right">
+                       <p className="font-semibold text-gray-900">
+                         {replacePricingTokens(`[PRICE:${cartItem}]`)}
+                       </p>
+                     </div>
+                   </div>
+                 )
+              })}
               
               {/* Total */}
               <div className="border-t pt-4">

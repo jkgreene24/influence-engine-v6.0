@@ -11,17 +11,19 @@ import { automationHelpers } from "@/lib/utils/mock-automation"
 interface ToolkitOfferProps {
   funnelState: FunnelState
   updateFunnelState: (newState: Partial<FunnelState>) => void
+  updateFunnelStateAndGoToNext: (newState: Partial<FunnelState>) => void
   goToNextStep: () => void
 }
 
-export default function ToolkitOffer({ funnelState, updateFunnelState, goToNextStep }: ToolkitOfferProps) {
+export default function ToolkitOffer({ funnelState, updateFunnelState, updateFunnelStateAndGoToNext, goToNextStep }: ToolkitOfferProps) {
   const toolkit = getProduct('Toolkit')
 
   const handleYes = async () => {
-    updateFunnelState({
-      wantsToolkit: true,
-      declinedToolkit: false,
-      cart: [...funnelState.cart, 'Toolkit']
+    const newCart = [...funnelState.cart, 'Toolkit']
+    console.log('ToolkitOffer - Adding to cart:', {
+      currentCart: funnelState.cart,
+      newCart: newCart,
+      currentState: funnelState
     })
     
     // Tag product selection in automation
@@ -33,7 +35,12 @@ export default function ToolkitOffer({ funnelState, updateFunnelState, goToNextS
       console.error('Failed to tag product selection:', error)
     }
     
-    goToNextStep()
+    // Update state and go to next step in one operation
+    updateFunnelStateAndGoToNext({
+      wantsToolkit: true,
+      declinedToolkit: false,
+      cart: newCart
+    })
   }
 
   const handleNo = async () => {

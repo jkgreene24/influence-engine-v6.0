@@ -10,19 +10,27 @@ import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
 interface IEOfferProps {
   funnelState: FunnelState
   updateFunnelState: (newState: Partial<FunnelState>) => void
+  updateFunnelStateAndGoToNext: (newState: Partial<FunnelState>) => void
   goToNextStep: () => void
 }
 
-export default function IEOffer({ funnelState, updateFunnelState, goToNextStep }: IEOfferProps) {
+export default function IEOffer({ funnelState, updateFunnelState, updateFunnelStateAndGoToNext, goToNextStep }: IEOfferProps) {
   const ie = getProduct('IE_Annual')
 
   const handleYes = () => {
-    updateFunnelState({
+    const newCart = [...funnelState.cart, 'IE_Annual']
+    console.log('IEOffer - Adding to cart:', {
+      currentCart: funnelState.cart,
+      newCart: newCart,
+      currentState: funnelState
+    })
+    
+    // Update state and go to next step in one operation
+    updateFunnelStateAndGoToNext({
       wantsIE: true,
       declinedIE: false,
-      cart: [...funnelState.cart, 'IE_Annual']
+      cart: newCart
     })
-    goToNextStep()
   }
 
   const handleNo = () => {

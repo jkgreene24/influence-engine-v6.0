@@ -10,19 +10,27 @@ import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
 interface BookOfferProps {
   funnelState: FunnelState
   updateFunnelState: (newState: Partial<FunnelState>) => void
+  updateFunnelStateAndGoToNext: (newState: Partial<FunnelState>) => void
   goToNextStep: () => void
 }
 
-export default function BookOffer({ funnelState, updateFunnelState, goToNextStep }: BookOfferProps) {
+export default function BookOffer({ funnelState, updateFunnelState, updateFunnelStateAndGoToNext, goToNextStep }: BookOfferProps) {
   const book = getProduct('Book')
 
   const handleYes = () => {
-    updateFunnelState({
+    const newCart = [...funnelState.cart, 'Book']
+    console.log('BookOffer - Adding to cart:', {
+      currentCart: funnelState.cart,
+      newCart: newCart,
+      currentState: funnelState
+    })
+    
+    // Update state and go to next step in one operation
+    updateFunnelStateAndGoToNext({
       wantsBook: true,
       declinedBook: false,
-      cart: [...funnelState.cart, 'Book']
+      cart: newCart
     })
-    goToNextStep()
   }
 
   const handleNo = () => {

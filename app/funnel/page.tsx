@@ -20,8 +20,11 @@ export default function FunnelPage() {
   useEffect(() => {
     // Load funnel state from localStorage
     const savedState = loadFunnelState()
+    console.log('Loaded funnel state:', savedState)
+    
     if (!savedState) {
       // If no funnel state, redirect to entry
+      console.log('No funnel state found, redirecting to entry')
       router.push("/")
       return
     }
@@ -35,6 +38,7 @@ export default function FunnelPage() {
       saveFunnelState(savedState)
     }
     
+    console.log('Setting funnel state:', savedState)
     setFunnelState(savedState)
     setLoading(false)
   }, [router])
@@ -42,8 +46,42 @@ export default function FunnelPage() {
   const updateFunnelState = (newState: Partial<FunnelState>) => {
     if (funnelState) {
       const updatedState = { ...funnelState, ...newState }
+      console.log('Updating funnel state:', { 
+        oldState: funnelState, 
+        newState, 
+        updatedState,
+        cartChange: {
+          oldCart: funnelState.cart,
+          newCart: updatedState.cart,
+          cartChanged: funnelState.cart.length !== updatedState.cart.length
+        }
+      })
       setFunnelState(updatedState)
       saveFunnelState(updatedState)
+    }
+  }
+
+  const updateFunnelStateAndGoToNext = (newState: Partial<FunnelState>) => {
+    if (funnelState) {
+      const updatedState = { ...funnelState, ...newState }
+      const nextStep = getNextStep(updatedState)
+      const finalState = { ...updatedState, step: nextStep }
+      
+      console.log('Updating funnel state and going to next step:', { 
+        oldState: funnelState, 
+        newState, 
+        updatedState,
+        nextStep,
+        finalState,
+        cartChange: {
+          oldCart: funnelState.cart,
+          newCart: finalState.cart,
+          cartChanged: funnelState.cart.length !== finalState.cart.length
+        }
+      })
+      
+      setFunnelState(finalState)
+      saveFunnelState(finalState)
     }
   }
 
@@ -51,7 +89,10 @@ export default function FunnelPage() {
     if (!funnelState) return
     
     const nextStep = getNextStep(funnelState)
-    updateFunnelState({ step: nextStep })
+    // Only update the step, preserve all other state including cart
+    updateFunnelState({ 
+      step: nextStep
+    })
   }
 
   const getNextStep = (state: FunnelState): FunnelState['step'] => {
@@ -118,11 +159,11 @@ export default function FunnelPage() {
     case 'results':
       return <QuizResults funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
     case 'toolkit-offer':
-      return <ToolkitOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+      return <ToolkitOffer funnelState={funnelState} updateFunnelState={updateFunnelState} updateFunnelStateAndGoToNext={updateFunnelStateAndGoToNext} goToNextStep={goToNextStep} />
     case 'book-offer':
-      return <BookOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+      return <BookOffer funnelState={funnelState} updateFunnelState={updateFunnelState} updateFunnelStateAndGoToNext={updateFunnelStateAndGoToNext} goToNextStep={goToNextStep} />
     case 'ie-offer':
-      return <IEOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+      return <IEOffer funnelState={funnelState} updateFunnelState={updateFunnelState} updateFunnelStateAndGoToNext={updateFunnelStateAndGoToNext} goToNextStep={goToNextStep} />
     case 'bundle-offer':
       return <BundleOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
     case 'checkout':
