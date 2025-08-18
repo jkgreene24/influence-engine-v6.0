@@ -94,7 +94,7 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
           userName: `${funnelState.userData?.firstName} ${funnelState.userData?.lastName}`,
           influenceStyle: funnelState.influenceStyle,
           secondaryStyle: funnelState.secondaryStyle,
-          purchaseType: funnelState.cart.length === 3 ? "bundle" : funnelState.cart[0]?.toLowerCase(),
+          cart: funnelState.cart,
           metadata,
         }),
       })
@@ -132,6 +132,8 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
         return <FileText className="w-5 h-5" />
       case 'IE_Annual':
         return <Crown className="w-5 h-5" />
+      case 'Bundle':
+        return <Package className="w-5 h-5" />
       default:
         return <Package className="w-5 h-5" />
     }
@@ -176,11 +178,12 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                             {funnelState.cart.map((cartItem, index) => {
+                                                          {funnelState.cart.map((cartItem, index) => {
                  console.log('Displaying cart item:', cartItem, 'at index:', index)
                  const product = getProduct(cartItem as any)
                  console.log('Product for display:', product)
-                                  if (!product) {
+                                  
+                 if (!product) {
                    console.warn(`Product not found for cart item: ${cartItem}`)
                    // Show a fallback item if product not found
                    return (
@@ -200,6 +203,53 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
                      </div>
                    )
                  }
+                 
+                 // Special handling for Bundle - show individual items
+                 if (cartItem === 'Bundle') {
+                   return (
+                     <div key={index} className="space-y-3">
+                       {/* Bundle header */}
+                       <div className="flex items-center justify-between p-3 border-2 border-[#92278F] rounded-lg bg-[#92278F]/5">
+                         <div className="flex items-center space-x-3">
+                           <div className="w-8 h-8 bg-[#92278F] rounded-full flex items-center justify-center text-white">
+                             {getItemIcon(cartItem)}
+                           </div>
+                           <div>
+                             <h4 className="font-medium text-gray-900">{product.name}</h4>
+                             <p className="text-sm text-gray-600">{product.description}</p>
+                           </div>
+                         </div>
+                         <div className="text-right">
+                           <p className="font-semibold text-[#92278F]">
+                             {replacePricingTokens(`[PRICE:${cartItem}]`)}
+                           </p>
+                         </div>
+                       </div>
+                       
+                       {/* Bundle contents */}
+                       <div className="ml-8 space-y-2">
+                         <div className="flex items-center justify-between text-sm">
+                           <span className="text-gray-600">• The Book</span>
+                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:Book]')}</span>
+                         </div>
+                         <div className="flex items-center justify-between text-sm">
+                           <span className="text-gray-600">• The Full Toolkit</span>
+                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:Toolkit]')}</span>
+                         </div>
+                         <div className="flex items-center justify-between text-sm">
+                           <span className="text-gray-600">• The Influence Engine™ Annual</span>
+                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:IE_Annual]')}</span>
+                         </div>
+                         <div className="flex items-center justify-between text-sm font-medium text-green-600">
+                           <span>Bundle Savings</span>
+                           <span>-$100</span>
+                         </div>
+                       </div>
+                     </div>
+                   )
+                 }
+                 
+                 // Regular product display
                  return (
                    <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                      <div className="flex items-center space-x-3">
@@ -218,7 +268,7 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
                      </div>
                    </div>
                  )
-              })}
+               })}
               
               {/* Total */}
               <div className="border-t pt-4">

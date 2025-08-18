@@ -104,11 +104,8 @@ export default function FunnelPage() {
       case 'results':
         return 'toolkit-offer'
       case 'toolkit-offer':
-        if (state.wantsToolkit) {
-          return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer'
-        } else {
-          return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer'
-        }
+        // Always go to book offer next (unless SRC_BOOK is true)
+        return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer'
       case 'book-offer':
         return 'ie-offer'
       case 'ie-offer':
@@ -127,10 +124,15 @@ export default function FunnelPage() {
   }
 
   const shouldShowBookOffer = (state: FunnelState): boolean => {
-    return !state.sourceTracking.srcBook && !state.wantsBook && !state.declinedBook
+    // Skip book offer if SRC_BOOK is true
+    return !state.sourceTracking.srcBook
   }
 
   const shouldShowBundleOffer = (state: FunnelState): boolean => {
+    // Show bundle offer if:
+    // 1. IE is not wanted (user declined IE)
+    // 2. 2+ items have been declined (Toolkit, Book, or IE)
+    // 3. Bundle hasn't been selected yet
     const declinedCount = [state.declinedToolkit, state.declinedBook, state.declinedIE].filter(Boolean).length
     return declinedCount >= 2 && !state.wantsIE && !state.wantsBundle
   }

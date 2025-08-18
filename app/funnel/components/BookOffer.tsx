@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, ArrowRight, BookOpen, Target, Eye, Clock, Users, Zap } from "lucide-react"
 import { type FunnelState } from "@/lib/utils/funnel-state"
 import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
+import { automationHelpers } from "@/lib/utils/mock-automation"
 
 interface BookOfferProps {
   funnelState: FunnelState
@@ -34,11 +35,20 @@ export default function BookOffer({ funnelState, updateFunnelState, updateFunnel
   }
 
   const handleNo = () => {
-    updateFunnelState({
+    // Update state and go to next step in one operation
+    updateFunnelStateAndGoToNext({
       declinedBook: true,
       wantsBook: false
     })
-    goToNextStep()
+    
+    // Tag product decline in automation
+    try {
+      if (funnelState.userData?.email) {
+        automationHelpers.tagProductSelection(funnelState.userData.email, 'Book', 'decline')
+      }
+    } catch (error) {
+      console.error('Failed to tag product decline:', error)
+    }
   }
 
   return (

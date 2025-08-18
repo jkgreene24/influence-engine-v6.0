@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, ArrowRight, Package, Zap, Target, Shield, FileText, Users, Crown, BookOpen } from "lucide-react"
 import { type FunnelState } from "@/lib/utils/funnel-state"
 import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
+import { automationHelpers } from "@/lib/utils/mock-automation"
 
 interface BundleOfferProps {
   funnelState: FunnelState
@@ -17,6 +18,7 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
   const bundle = getProduct('Bundle')
 
   const handleYes = () => {
+    // Replace cart with bundle items and apply bundle pricing
     updateFunnelState({
       wantsBundle: true,
       wantsToolkit: true,
@@ -25,13 +27,32 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
       declinedToolkit: false,
       declinedBook: false,
       declinedIE: false,
-      cart: ['Book', 'Toolkit', 'IE_Annual'] // Replace cart with bundle items
+      cart: ['Bundle'] // Use bundle product instead of individual items
     })
     goToNextStep()
+    
+    // Tag bundle selection in automation
+    try {
+      if (funnelState.userData?.email) {
+        automationHelpers.tagProductSelection(funnelState.userData.email, 'Bundle', 'want')
+      }
+    } catch (error) {
+      console.error('Failed to tag bundle selection:', error)
+    }
   }
 
   const handleNo = () => {
+    // Keep current cart as is, just go to checkout
     goToNextStep()
+    
+    // Tag bundle decline in automation
+    try {
+      if (funnelState.userData?.email) {
+        automationHelpers.tagProductSelection(funnelState.userData.email, 'Bundle', 'decline')
+      }
+    } catch (error) {
+      console.error('Failed to tag bundle decline:', error)
+    }
   }
 
   return (

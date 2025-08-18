@@ -44,7 +44,8 @@ export default function ToolkitOffer({ funnelState, updateFunnelState, updateFun
   }
 
   const handleNo = async () => {
-    updateFunnelState({
+    // Update state and go to next step in one operation
+    updateFunnelStateAndGoToNext({
       declinedToolkit: true,
       wantsToolkit: false
     })
@@ -57,8 +58,6 @@ export default function ToolkitOffer({ funnelState, updateFunnelState, updateFun
     } catch (error) {
       console.error('Failed to tag product decline:', error)
     }
-    
-    goToNextStep()
   }
 
   return (
