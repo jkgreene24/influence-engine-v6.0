@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, ArrowRight, Package, Zap, Target, Shield, FileText, Users, Crown, BookOpen } from "lucide-react"
 import { type FunnelState } from "@/lib/utils/funnel-state"
-import { getProduct, replacePricingTokens } from "@/lib/utils/pricing"
+import { getProduct, replacePricingTokens, PRICING_TOKENS } from "@/lib/utils/pricing"
 import { automationHelpers } from "@/lib/utils/mock-automation"
 
 interface BundleOfferProps {
@@ -76,12 +76,15 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {replacePricingTokens("Bundle & Save — All Three for Less Than the Cost of One Deal Lost")}
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Don't leave money on the table.
-          </p>
+                     <h1 className="text-4xl font-bold text-gray-900 mb-4">
+             {replacePricingTokens("Bundle & Save — Get Everything You Need")}
+           </h1>
+           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+             {funnelState.cart.length > 0 
+               ? "Upgrade to our complete bundle and save money!"
+               : "Complete your influence mastery with our best-value bundle."
+             }
+           </p>
         </div>
 
         {/* Main Offer Card */}
@@ -146,35 +149,71 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
               </div>
             </div>
 
-            {/* Savings Highlight */}
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <div className="text-center">
-                <h4 className="font-medium text-green-900 mb-2">Bundle Savings</h4>
-                <div className="flex justify-center items-center space-x-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Regular Price</p>
-                    <p className="text-lg font-semibold text-gray-500 line-through">
-                      {replacePricingTokens("[PRICE:Bundle_Standard]")}
-                    </p>
-                  </div>
-                  <div className="text-2xl text-green-600">→</div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Bundle Price</p>
-                    <p className="text-2xl font-bold text-[#92278F]">
-                      {replacePricingTokens("[PRICE:Bundle]")}
-                    </p>
-                  </div>
-                </div>
-                                 <p className="text-green-700 font-medium mt-2">Save $50 instantly!</p>
-              </div>
-            </div>
+                         {/* Savings Highlight */}
+             <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+               <div className="text-center">
+                 <h4 className="font-medium text-green-900 mb-2">Bundle Savings</h4>
+                 {funnelState.cart.length > 0 && (
+                   <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
+                     <p className="text-sm text-gray-600 mb-2">Your current selection:</p>
+                     <div className="text-sm text-gray-700 space-y-1">
+                       {funnelState.cart.map((item, index) => {
+                         const product = getProduct(item as any)
+                         return (
+                           <div key={index} className="flex justify-between">
+                             <span>• {product.name}</span>
+                             <span className="font-medium">${product.price}</span>
+                           </div>
+                         )
+                       })}
+                     </div>
+                     <div className="mt-2 pt-2 border-t border-green-200">
+                       <div className="flex justify-between font-medium">
+                         <span>Current Total:</span>
+                         <span>${funnelState.cart.reduce((total, item) => {
+                           const product = getProduct(item as any)
+                           return total + product.price
+                         }, 0)}</span>
+                       </div>
+                     </div>
+                   </div>
+                 )}
+                 <div className="flex justify-center items-center space-x-4">
+                   <div className="text-center">
+                     <p className="text-sm text-gray-600">Regular Price</p>
+                     <p className="text-lg font-semibold text-gray-500 line-through">
+                       {replacePricingTokens("[PRICE:Bundle_Standard]")}
+                     </p>
+                   </div>
+                   <div className="text-2xl text-green-600">→</div>
+                   <div className="text-center">
+                     <p className="text-sm text-gray-600">Bundle Price</p>
+                     <p className="text-2xl font-bold text-[#92278F]">
+                       {replacePricingTokens("[PRICE:Bundle]")}
+                     </p>
+                   </div>
+                 </div>
+                 <p className="text-green-700 font-medium mt-2">
+                   {funnelState.cart.length > 0 
+                     ? `Save $${funnelState.cart.reduce((total, item) => {
+                         const product = getProduct(item as any)
+                         return total + product.price
+                       }, 0) - PRICING_TOKENS.Bundle} by upgrading to the bundle!`
+                     : "Save $50 instantly!"
+                   }
+                 </p>
+               </div>
+             </div>
 
             {/* Call to Action */}
-            <div className="bg-[#92278F]/5 p-6 rounded-lg border border-[#92278F]/20">
-              <p className="text-lg text-gray-900 font-medium text-center mb-4">
-                💰 Don't leave money on the table. Get everything you need to close more deals.
-              </p>
-            </div>
+                         <div className="bg-[#92278F]/5 p-6 rounded-lg border border-[#92278F]/20">
+               <p className="text-lg text-gray-900 font-medium text-center mb-4">
+                 {funnelState.cart.length > 0 
+                   ? "💰 Upgrade to the bundle and save money while getting everything you need!"
+                   : "💰 Get the complete influence system at our best price. Perfect for serious professionals."
+                 }
+               </p>
+             </div>
           </CardContent>
         </Card>
 

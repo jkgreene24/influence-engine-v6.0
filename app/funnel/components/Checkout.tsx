@@ -45,6 +45,9 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
   console.log('Total:', total)
   console.log('Has IE:', hasIE)
 
+  // Check if this was an auto-upgrade to bundle
+  const wasAutoUpgraded = funnelState.wantsBundle && funnelState.cart.includes('Bundle')
+
   const handleCheckout = async () => {
     if (!agreementChecked) {
       setError("Please accept the Member Access Agreement")
@@ -167,6 +170,26 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
             You're just one step away from unlocking your influence potential.
           </p>
         </div>
+
+        {/* Auto-Upgrade Notification */}
+        {wasAutoUpgraded && (
+          <Card className="mb-6 border-2 border-green-200 bg-green-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-900">Smart Upgrade Applied!</h3>
+                  <p className="text-sm text-green-700">
+                    We've automatically upgraded you to our complete bundle to save you money. 
+                    You're getting everything you need at our best price!
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Cart Summary */}

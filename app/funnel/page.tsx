@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { loadFunnelState, saveFunnelState, type FunnelState } from "@/lib/utils/funnel-state"
+import { getProduct, PRICING_TOKENS } from "@/lib/utils/pricing"
 import QuizEntry from "./components/QuizEntry"
 import QuizResults from "./components/QuizResults"
 import ToolkitOffer from "./components/ToolkitOffer"
@@ -109,11 +110,8 @@ export default function FunnelPage() {
       case 'book-offer':
         return 'ie-offer'
       case 'ie-offer':
-        if (state.wantsIE) {
-          return 'checkout'
-        } else {
-          return shouldShowBundleOffer(state) ? 'bundle-offer' : 'checkout'
-        }
+        // Always show bundle offer after IE offer (if bundle not selected)
+        return shouldShowBundleOffer(state) ? 'bundle-offer' : 'checkout'
       case 'bundle-offer':
         return 'checkout'
       case 'checkout':
@@ -129,12 +127,34 @@ export default function FunnelPage() {
   }
 
   const shouldShowBundleOffer = (state: FunnelState): boolean => {
-    // Show bundle offer if:
-    // 1. IE is not wanted (user declined IE)
-    // 2. 2+ items have been declined (Toolkit, Book, or IE)
-    // 3. Bundle hasn't been selected yet
-    const declinedCount = [state.declinedToolkit, state.declinedBook, state.declinedIE].filter(Boolean).length
-    return declinedCount >= 2 && !state.wantsIE && !state.wantsBundle
+    // Always show bundle offer if:
+    // 1. Bundle hasn't been selected yet
+    // 
+    // Note: Per Jen Greene's feedback, bundle should always be offered
+    // regardless of what individual packages the user has selected
+    return !state.wantsBundle
+  }
+
+  const shouldAutoUpgradeToBundle = (state: FunnelState): boolean => {
+    // Auto-upgrade to bundle if user has selected combinations that cost more than bundle
+    if (state.wantsBundle || state.cart.length === 0) return false
+    
+    const cartTotal = state.cart.reduce((total, item) => {
+      const product = getProduct(item as any)
+      return total + product.price
+    }, 0)
+    
+    const shouldUpgrade = cartTotal >= PRICING_TOKENS.Bundle
+    
+    console.log('Auto-upgrade check:', {
+      cart: state.cart,
+      cartTotal,
+      bundlePrice: PRICING_TOKENS.Bundle,
+      shouldUpgrade
+    })
+    
+    // Auto-upgrade if cart total is >= bundle price ($547)
+    return shouldUpgrade
   }
 
   if (loading) {
@@ -150,6 +170,40 @@ export default function FunnelPage() {
 
   if (!funnelState) {
     return null
+  }
+
+  // Check for auto-upgrade to bundle before rendering
+  if (funnelState.step === 'ie-offer' && shouldAutoUpgradeToBundle(funnelState)) {
+    console.log('🚀 Auto-upgrading to bundle!')
+    
+    // Auto-upgrade to bundle and go to checkout
+    const updatedState: FunnelState = {
+      ...funnelState,
+      wantsBundle: true,
+      wantsToolkit: true,
+      wantsBook: true,
+      wantsIE: true,
+      declinedToolkit: false,
+      declinedBook: false,
+      declinedIE: false,
+      cart: ['Bundle'],
+      step: 'checkout' as const
+    }
+    
+    // Tag auto-upgrade in automation
+    try {
+      if (funnelState.userData?.email) {
+        import("@/lib/utils/mock-automation").then(({ automationHelpers }) => {
+          automationHelpers.tagProductSelection(funnelState.userData!.email, 'Bundle', 'want')
+        })
+      }
+    } catch (error) {
+      console.error('Failed to tag auto-upgrade:', error)
+    }
+    
+    setFunnelState(updatedState)
+    saveFunnelState(updatedState)
+    return <Checkout funnelState={updatedState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
   }
 
   // Render the appropriate step component

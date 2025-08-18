@@ -61,7 +61,7 @@ export const PRODUCTS = {
     name: "Influence Mastery Bundle",
     price: PRICING_TOKENS.Bundle,
     normalPrice: PRICING_TOKENS.Bundle_Standard,
-    description: "All three for less than the cost of one deal lost",
+    description: "Complete influence system at our best value",
     features: [
       "The Book",
       "The Full Toolkit", 
