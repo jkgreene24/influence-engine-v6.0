@@ -44,22 +44,12 @@ export async function POST(request: Request) {
           console.log(`Mapped ${item} to price ID: ${process.env.STRIPE_IE_ANNUAL_PRICE_ID}`);
           break;
         case "bundle":
-          // For bundle, add all three individual products
-          lineItems.push(
-            {
-              price: process.env.STRIPE_BOOK_PRICE_ID!,
-              quantity: 1,
-            },
-            {
-              price: process.env.STRIPE_TOOLKIT_PRICE_ID!,
-              quantity: 1,
-            },
-            {
-              price: process.env.STRIPE_IE_ANNUAL_PRICE_ID!,
-              quantity: 1,
-            }
-          );
-          console.log(`Mapped ${item} to bundle: Book + Toolkit + IE_Annual`);
+          // For bundle, use the bundle price ID
+          lineItems.push({
+            price: process.env.STRIPE_BUNDLE_PRICE_ID!,
+            quantity: 1,
+          });
+          console.log(`Mapped ${item} to bundle price ID: ${process.env.STRIPE_BUNDLE_PRICE_ID}`);
           break;
         default:
           console.warn(`Unknown cart item: ${item}, defaulting to toolkit`);

@@ -167,7 +167,7 @@ export default function FunnelPage() {
     case 'ie-offer':
       return <IEOffer funnelState={funnelState} updateFunnelState={updateFunnelState} updateFunnelStateAndGoToNext={updateFunnelStateAndGoToNext} goToNextStep={goToNextStep} />
     case 'bundle-offer':
-      return <BundleOffer funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
+      return <BundleOffer funnelState={funnelState} updateFunnelState={updateFunnelState} updateFunnelStateAndGoToNext={updateFunnelStateAndGoToNext} goToNextStep={goToNextStep} />
     case 'checkout':
       return <Checkout funnelState={funnelState} updateFunnelState={updateFunnelState} goToNextStep={goToNextStep} />
     case 'success':

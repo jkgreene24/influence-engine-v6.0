@@ -4,7 +4,7 @@ export const PRICING_TOKENS = {
   Toolkit: 79,
   IE_Annual: 499,
   IE_Standard: 997,
-  Bundle: 497,
+  Bundle: 547,
   Bundle_Standard: 597,
   MidTier: 199, // Placeholder for future use
 } as const;

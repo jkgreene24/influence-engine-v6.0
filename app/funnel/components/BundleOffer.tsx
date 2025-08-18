@@ -11,15 +11,16 @@ import { automationHelpers } from "@/lib/utils/mock-automation"
 interface BundleOfferProps {
   funnelState: FunnelState
   updateFunnelState: (newState: Partial<FunnelState>) => void
+  updateFunnelStateAndGoToNext: (newState: Partial<FunnelState>) => void
   goToNextStep: () => void
 }
 
-export default function BundleOffer({ funnelState, updateFunnelState, goToNextStep }: BundleOfferProps) {
+export default function BundleOffer({ funnelState, updateFunnelState, updateFunnelStateAndGoToNext, goToNextStep }: BundleOfferProps) {
   const bundle = getProduct('Bundle')
 
   const handleYes = () => {
     // Replace cart with bundle items and apply bundle pricing
-    updateFunnelState({
+    updateFunnelStateAndGoToNext({
       wantsBundle: true,
       wantsToolkit: true,
       wantsBook: true,
@@ -29,7 +30,6 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
       declinedIE: false,
       cart: ['Bundle'] // Use bundle product instead of individual items
     })
-    goToNextStep()
     
     // Tag bundle selection in automation
     try {
@@ -43,7 +43,7 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
 
   const handleNo = () => {
     // Keep current cart as is, just go to checkout
-    goToNextStep()
+    updateFunnelStateAndGoToNext({})
     
     // Tag bundle decline in automation
     try {
@@ -93,9 +93,9 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
             <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
               Get everything you need to master influence
             </CardTitle>
-            <p className="text-lg text-gray-600">
-              {replacePricingTokens("Normally [PRICE:Bundle_Standard] — today only [PRICE:Bundle]. Save $100 instantly.")}
-            </p>
+                         <p className="text-lg text-gray-600">
+               {replacePricingTokens("Normally [PRICE:Bundle_Standard] — today only [PRICE:Bundle]. Save $50 instantly.")}
+             </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Bundle Contents */}
@@ -165,7 +165,7 @@ export default function BundleOffer({ funnelState, updateFunnelState, goToNextSt
                     </p>
                   </div>
                 </div>
-                <p className="text-green-700 font-medium mt-2">Save $100 instantly!</p>
+                                 <p className="text-green-700 font-medium mt-2">Save $50 instantly!</p>
               </div>
             </div>
 

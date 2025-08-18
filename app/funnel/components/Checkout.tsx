@@ -41,7 +41,7 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
     return sum + price
   }, 0)
   
-  const hasIE = funnelState.cart.includes('IE_Annual')
+  const hasIE = funnelState.cart.includes('IE_Annual') || funnelState.cart.includes('Bundle')
   console.log('Total:', total)
   console.log('Has IE:', hasIE)
 
@@ -240,10 +240,10 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
                            <span className="text-gray-600">• The Influence Engine™ Annual</span>
                            <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:IE_Annual]')}</span>
                          </div>
-                         <div className="flex items-center justify-between text-sm font-medium text-green-600">
-                           <span>Bundle Savings</span>
-                           <span>-$100</span>
-                         </div>
+                                                   <div className="flex items-center justify-between text-sm font-medium text-green-600">
+                            <span>Bundle Savings</span>
+                            <span>-$50</span>
+                          </div>
                        </div>
                      </div>
                    )
