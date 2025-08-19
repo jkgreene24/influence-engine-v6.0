@@ -906,7 +906,7 @@ export default function QuickQuiz() {
         console.log("🛣️ No selected path - entry questions")
         // Entry questions
         if (currentQuestionIndex === 0) {
-          // First entry question - determine initial path
+          // First entry question - just move to next question, don't set path yet
           const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
           console.log("🛣️ First entry answer:", answer)
           if (answer && "route" in answer && answer.route) {
@@ -923,14 +923,18 @@ export default function QuickQuiz() {
               setCurrentQuestionIndex(0)
               setSelectedAnswer("")
             } else {
-              console.log("🛣️ Setting selected path:", route)
-              setSelectedPath(route)
+              // Store the route temporarily but don't set selectedPath yet
+              // We'll set it after the second entry question
+              console.log("️ Storing route for later:", route)
               setCurrentQuestionIndex(1)
               setSelectedAnswer("")
+              // Store the route in a temporary variable or in the answers
+              const tempAnswers = { ...newAnswers, tempRoute: route }
+              setAnswers(tempAnswers)
             }
           }
         } else {
-          // Second entry question - confirm path and move to path questions
+          // Second entry question - now set the path and move to path questions
           const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
           console.log("🔍 Second entry answer:", answer)
           if (answer && "route" in answer && answer.route) {
@@ -944,6 +948,15 @@ export default function QuickQuiz() {
             } else {
               console.log("🛣️ Setting selected path:", route)
               setSelectedPath(route)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            }
+          } else {
+            // Use the stored route from the first question
+            const storedRoute = newAnswers.tempRoute
+            if (storedRoute) {
+              console.log("🛣️ Using stored route:", storedRoute)
+              setSelectedPath(storedRoute)
               setCurrentQuestionIndex(0)
               setSelectedAnswer("")
             }
