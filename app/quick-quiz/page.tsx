@@ -64,7 +64,7 @@ const entryQuestions: QuizQuestion[] = [
       { id: "B", text: "I create emotional safety and strong human connection.", styles: ["diplomat", "connector"], route: "relationship" },
       { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "fast-paced" },
       { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], route: "blend" },
-      { id: "E", text: "None of these feel quite right — show me totally different options.", styles: ["mixed"], route: "fast-paced" },
+      { id: "E", text: "None of these feel quite right — show me totally different options.", styles: ["mixed"], route: "fast-paced-alt" },
     ],
   },
   {
@@ -218,6 +218,32 @@ const blendQuestions = [
       { id: "A", text: "Driving change and initiating movement", styles: ["catalyst", "navigator"] },
       { id: "B", text: "Building emotional trust and psychological safety", styles: ["diplomat", "connector"] },
       { id: "C", text: "Creating order and planning for success", styles: ["anchor"] },
+    ],
+  },
+]
+
+// Alternative question set for "none of these feel right" responses
+const alternativeQuestions = [
+  {
+    id: "alt1",
+    question: "When you're at your best, what drives you most?",
+    answers: [
+      { id: "A", text: "Vision", styles: ["navigator"] },
+      { id: "B", text: "Momentum", styles: ["catalyst"] },
+      { id: "C", text: "People", styles: ["connector"] },
+      { id: "D", text: "Stability", styles: ["anchor"] },
+      { id: "E", text: "Emotion", styles: ["diplomat"] },
+    ],
+  },
+  {
+    id: "alt2",
+    question: "What kind of feedback do you hear most?",
+    answers: [
+      { id: "A", text: "You keep things moving.", styles: ["catalyst"] },
+      { id: "B", text: "You always understand people.", styles: ["diplomat"] },
+      { id: "C", text: "You think big.", styles: ["navigator"] },
+      { id: "D", text: "You're grounded and dependable.", styles: ["anchor"] },
+      { id: "E", text: "You bring people together.", styles: ["connector"] },
     ],
   },
 ]
@@ -453,6 +479,7 @@ export default function QuickQuiz() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
   const [needsPressure, setNeedsPressure] = useState(false)
   const [needsBlendClarity, setNeedsBlendClarity] = useState(false)
+  const [needsAlternative, setNeedsAlternative] = useState(false)
   const [history, setHistory] = useState<QuizState[]>([])
   const [randomizedQuestions, setRandomizedQuestions] = useState<{
     entry: QuizQuestion[]
@@ -462,6 +489,7 @@ export default function QuickQuiz() {
     confirmation: QuizQuestion[]
     pressure: QuizQuestion[]
     blendClarity: QuizQuestion[]
+    alternative: QuizQuestion[]
   } | null>(null)
   const [userData, setUserData] = useState<any>(null)
   const router = useRouter()
@@ -506,6 +534,10 @@ export default function QuickQuiz() {
       blendClarity: blendClarityQuestions.map(q => ({
         ...q,
         answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
+      })),
+      alternative: alternativeQuestions.map(q => ({
+        ...q,
+        answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
       }))
     }
     setRandomizedQuestions(randomized)
@@ -516,6 +548,9 @@ export default function QuickQuiz() {
       // Return original questions during SSR
       switch (currentStep) {
         case "quiz":
+          if (needsAlternative) {
+            return alternativeQuestions
+          }
           if (needsBlendClarity) {
             return blendClarityQuestions
           }
@@ -537,6 +572,9 @@ export default function QuickQuiz() {
     // Return randomized questions on client
     switch (currentStep) {
       case "quiz":
+        if (needsAlternative) {
+          return randomizedQuestions.alternative
+        }
         if (needsBlendClarity) {
           return randomizedQuestions.blendClarity
         }
@@ -569,7 +607,22 @@ export default function QuickQuiz() {
     if (totalQuestionsInStep === 0) return 0
     
     // Calculate progress within the current step
-    return Math.round(((currentQuestionIndex + 1) / totalQuestionsInStep) * 100)
+    let progress = Math.round(((currentQuestionIndex + 1) / totalQuestionsInStep) * 100)
+    
+    // Adjust progress based on the current phase
+    if (needsAlternative) {
+      progress = 20 + (progress * 0.2) // 20-40%
+    } else if (needsBlendClarity) {
+      progress = 40 + (progress * 0.2) // 40-60%
+    } else if (needsPressure) {
+      progress = 60 + (progress * 0.2) // 60-80%
+    } else if (needsConfirmation) {
+      progress = 80 + (progress * 0.2) // 80-100%
+    } else if (selectedPath) {
+      progress = 20 + (progress * 0.6) // 20-80%
+    }
+    
+    return Math.round(progress)
   }
 
   const progress = getTotalProgress()
@@ -577,6 +630,14 @@ export default function QuickQuiz() {
   const getStepInfo = (step: string, path?: string) => {
     switch (step) {
       case "quiz":
+        if (needsAlternative) {
+          return {
+            title: "Finding Your Style",
+            subtitle: "Let's discover what drives you most",
+            description: "You didn't identify with the initial options. Let's find what truly motivates your influence approach.",
+            color: "from-indigo-600 to-purple-600",
+          }
+        }
         if (needsBlendClarity) {
           return {
             title: "Understanding Your Blend",
@@ -684,6 +745,8 @@ export default function QuickQuiz() {
           question = randomizedQuestions.pressure.find((q) => q.id === questionId)
         } else if (questionId.startsWith("blend")) {
           question = randomizedQuestions.blendClarity.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("alt")) {
+          question = randomizedQuestions.alternative.find((q) => q.id === questionId)
         }
       } else {
         // Fallback to original questions
@@ -701,6 +764,8 @@ export default function QuickQuiz() {
           question = pressureQuestions.find((q) => q.id === questionId)
         } else if (questionId.startsWith("blend")) {
           question = blendClarityQuestions.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("alt")) {
+          question = alternativeQuestions.find((q) => q.id === questionId)
         }
       }
 
@@ -757,35 +822,44 @@ export default function QuickQuiz() {
           // First entry question - determine initial path
           const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
           if (answer && "route" in answer && answer.route) {
-            setSelectedPath(answer.route as string)
+            const route = answer.route as string
+            if (route === "fast-paced-alt") {
+              setNeedsAlternative(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else {
+              setSelectedPath(route)
+              setCurrentQuestionIndex(1)
+              setSelectedAnswer("")
+            }
           }
-          setCurrentQuestionIndex(1)
-          setSelectedAnswer("")
         } else {
           // Second entry question - confirm path and move to path questions
           const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
           if (answer && "route" in answer && answer.route) {
-            setSelectedPath(answer.route as string)
-          }
-          
-          // Check if we need blend detection
-          const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
-            const allQuestions = [...entryQuestions]
-            for (const q of allQuestions) {
-              const a = q.answers.find((ans) => ans.id === answerId)
-              if (a && a.styles.includes("mixed")) return true
+            const route = answer.route as string
+            if (route === "blend") {
+              setNeedsBlendClarity(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else {
+              setSelectedPath(route)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
             }
-            return false
-          })
-
-          if (mixedAnswers.length >= 1) {
-            setNeedsBlendClarity(true)
-            setCurrentQuestionIndex(0)
-            setSelectedAnswer("")
-          } else {
-            setCurrentQuestionIndex(0)
-            setSelectedAnswer("")
           }
+        }
+      } else if (needsAlternative) {
+        // Alternative questions for "none of these feel right"
+        if (currentQuestionIndex < alternativeQuestions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
+          setSelectedAnswer("")
+        } else {
+          // Move to confirmation questions
+          setNeedsConfirmation(true)
+          setNeedsAlternative(false)
+          setCurrentQuestionIndex(0)
+          setSelectedAnswer("")
         }
       } else if (needsBlendClarity) {
         // Blend clarity questions
@@ -793,7 +867,7 @@ export default function QuickQuiz() {
           setCurrentQuestionIndex(currentQuestionIndex + 1)
           setSelectedAnswer("")
         } else {
-          // Move to pressure questions or confirmation
+          // Move to pressure questions
           setNeedsPressure(true)
           setNeedsBlendClarity(false)
           setCurrentQuestionIndex(0)
@@ -831,7 +905,7 @@ export default function QuickQuiz() {
           setCurrentQuestionIndex(currentQuestionIndex + 1)
           setSelectedAnswer("")
         } else {
-          // Check if we need pressure questions
+          // Check if we need pressure questions based on mixed answers
           const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
             const allQuestions = [...entryQuestions, ...Object.values(pathQuestions).flat() as QuizQuestion[]]
             for (const q of allQuestions) {
@@ -841,7 +915,7 @@ export default function QuickQuiz() {
             return false
           })
 
-          if (mixedAnswers.length >= 2) {
+          if (mixedAnswers.length >= 1) {
             setNeedsPressure(true)
             setCurrentQuestionIndex(0)
             setSelectedAnswer("")
@@ -1154,13 +1228,17 @@ export default function QuickQuiz() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Progress Section */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-gray-600">
-               {!selectedPath && `Question ${currentQuestionIndex + 1} of 2`}
-               {selectedPath && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                       <div className="flex justify-between items-center mb-4">
+               <div className="text-sm text-gray-600">
+                 {!selectedPath && !needsAlternative && !needsBlendClarity && !needsPressure && !needsConfirmation && `Question ${currentQuestionIndex + 1} of 2`}
+                 {selectedPath && !needsAlternative && !needsBlendClarity && !needsPressure && !needsConfirmation && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                 {needsAlternative && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                 {needsBlendClarity && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                 {needsPressure && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                 {needsConfirmation && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+               </div>
+               <div className="text-sm text-gray-600">{progress}% Complete</div>
              </div>
-            <div className="text-sm text-gray-600">{progress}% Complete</div>
-          </div>
           <Progress value={progress} className="h-3 bg-gray-200" />
         </div>
 
