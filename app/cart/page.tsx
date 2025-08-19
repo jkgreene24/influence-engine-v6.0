@@ -213,37 +213,54 @@ export default function CartPage() {
               </CardContent>
             </Card>
 
-            {/* Membership Agreement */}
+            {/* Member Access Agreement */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Membership Agreement</CardTitle>
+                <CardTitle className="text-xl">Member Access Agreement</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto text-sm text-gray-700 mb-4">
-                  <h4 className="font-semibold mb-2">The Influence Engine™ Membership Agreement</h4>
-                  <p className="mb-2">
-                    By signing this agreement, you agree to the following terms and conditions:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 mb-4">
-                    <li>You will receive access to The Influence Engine™ platform and its features</li>
-                    <li>Your membership includes personalized coaching and AI-powered insights</li>
-                    <li>You agree to use the platform responsibly and ethically</li>
-                    <li>Your data will be protected according to our privacy policy</li>
-                    <li>You can cancel your membership at any time</li>
-                  </ul>
-                  <p>
-                    By proceeding, you acknowledge that you have read, understood, and agree to these terms.
-                  </p>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">The Influence Engine™ Member Access Agreement</h4>
+                    
+                    <p><strong>1. Access and Use</strong></p>
+                    <p>By purchasing access to The Influence Engine™, you agree to use the materials, tools, and resources provided solely for your personal and professional development. You may not share, distribute, or resell any content without explicit written permission.</p>
+                    
+                    <p><strong>2. Intellectual Property</strong></p>
+                    <p>All content, materials, and intellectual property within The Influence Engine™ remain the exclusive property of The Influence Engine™ and its creators. You are granted a limited, non-exclusive license to use these materials for your personal development.</p>
+                    
+                    <p><strong>3. Professional Use</strong></p>
+                    <p>You may use the techniques and strategies learned through The Influence Engine™ in your professional practice, but you may not teach, train, or coach others using our proprietary methods without proper licensing or certification.</p>
+                    
+                    <p><strong>4. Confidentiality</strong></p>
+                    <p>You agree to maintain the confidentiality of proprietary information shared within The Influence Engine™ community and not to disclose specific techniques or strategies to non-members.</p>
+                    
+                    <p><strong>5. Results Disclaimer</strong></p>
+                    <p>While The Influence Engine™ provides proven strategies and techniques, individual results may vary. We do not guarantee specific outcomes or financial results from the use of our materials.</p>
+                    
+                    <p><strong>6. Community Guidelines</strong></p>
+                    <p>As a member, you agree to maintain professional and respectful behavior in all community interactions, including Slack channels and other communication platforms.</p>
+                    
+                    <p><strong>7. Termination</strong></p>
+                    <p>Access to The Influence Engine™ may be terminated for violation of this agreement or community guidelines. No refunds will be provided for violations resulting in termination.</p>
+                    
+                    <p><strong>8. Updates and Changes</strong></p>
+                    <p>This agreement may be updated from time to time. Continued use of The Influence Engine™ constitutes acceptance of any changes.</p>
+                    
+                    <p className="text-xs text-gray-500 mt-4">
+                      By checking the box below and providing your digital signature, you acknowledge that you have read, understood, and agree to be bound by this Member Access Agreement.
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-start space-x-3">
                   <Checkbox
                     id="terms"
                     checked={cartState.agreedToTerms}
                     onCheckedChange={(checked) => setCartState(prev => ({ ...prev, agreedToTerms: checked as boolean }))}
                   />
-                  <label htmlFor="terms" className="text-sm text-gray-700">
-                    I have read and agree to the Membership Agreement
+                  <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
+                    I have read, understood, and agree to the Member Access Agreement above.
                   </label>
                 </div>
               </CardContent>
