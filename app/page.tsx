@@ -138,20 +138,33 @@ export default function ContactPage() {
       
       saveFunnelState(funnelState)
 
-      // Save user data
-      const userData = {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        phone: phoneDigits,
-        company: company.trim(),
-        role: role.trim(),
-        createdAt: new Date().toISOString(),
-        emailVerified: false,
-        quizCompleted: false,
-        demoWatched: false,
-        ndaSigned: false,
-      }
+             // Save user data
+       const userData = {
+         firstName: firstName.trim(),
+         lastName: lastName.trim(),
+         email: email.trim(),
+         phone: phoneDigits,
+         company: company.trim(),
+         role: role.trim(),
+         createdAt: new Date().toISOString(),
+         emailVerified: false,
+         quizCompleted: false,
+         demoWatched: false,
+         ndaSigned: false,
+         // Source tracking data as single object
+         sourceTracking: {
+           source: funnelState.sourceTracking.source,
+           reiaName: funnelState.sourceTracking.reiaName,
+           socialPlatform: funnelState.sourceTracking.socialPlatform,
+           referrerName: funnelState.sourceTracking.referrerName,
+           wordOfMouth: funnelState.sourceTracking.wordOfMouth,
+           otherSource: funnelState.sourceTracking.otherSource,
+           utmSource: funnelState.sourceTracking.utmSource,
+           utmMedium: funnelState.sourceTracking.utmMedium,
+           utmCampaign: funnelState.sourceTracking.utmCampaign,
+           srcBook: funnelState.sourceTracking.srcBook,
+         },
+       }
 
       console.log("Inserting new user:", userData)
       const insertResponse = await fetch("/api/insert-user", {

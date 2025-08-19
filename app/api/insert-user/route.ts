@@ -29,6 +29,8 @@ export async function POST(request: Request) {
         paid_at: body.paidAt || null,
         paid_for: body.paidFor || null,
         nda_digital_signature: body.ndaDigitalSignature || null,
+        // Source tracking as JSONB
+        source_tracking: body.sourceTracking || null,
       })
       .select()
       .single();

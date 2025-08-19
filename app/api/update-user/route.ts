@@ -17,6 +17,8 @@ export async function POST(request: Request) {
        influenceStyle: body.influenceStyle,
        demoWatched: body.demoWatched,
        ndaDigitalSignature: body.ndaDigitalSignature,
+       // Source tracking data
+       sourceTracking: body.sourceTracking,
      });
     
     // Create Supabase client
@@ -37,6 +39,9 @@ export async function POST(request: Request) {
      if (body.quizCompleted !== undefined) updates.quiz_completed = body.quizCompleted;
      if (body.demoWatched !== undefined) updates.demo_watched = body.demoWatched;
      // Note: paid_at and paid_for are only updated by Stripe webhook after successful payment
+     
+     // Source tracking updates (JSONB)
+     if (body.sourceTracking !== undefined) updates.source_tracking = body.sourceTracking;
     
     console.log("Updates to apply:", updates);
     console.log("User ID to update:", body.id);
@@ -44,6 +49,7 @@ export async function POST(request: Request) {
          console.log("Database field mappings:");
      console.log("- ndaSigned -> nda_signed:", body.ndaSigned);
      console.log("- ndaDigitalSignature -> nda_digital_signature:", body.ndaDigitalSignature);
+     console.log("- source tracking JSONB:", body.sourceTracking);
     
     // Convert ID to number if it's a string
     const userId = typeof body.id === 'string' ? parseInt(body.id, 10) : body.id;
