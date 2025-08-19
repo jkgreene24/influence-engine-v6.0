@@ -20,7 +20,7 @@ export interface SourceTracking {
 
 export interface FunnelState {
   // User progress
-  step: 'entry' | 'quiz' | 'results' | 'toolkit-offer' | 'book-offer' | 'ie-offer' | 'bundle-offer' | 'checkout' | 'success';
+  step: 'entry' | 'quiz' | 'results' | 'product-selection' | 'checkout' | 'success';
   
   // Quiz results
   influenceStyle?: string;
@@ -115,22 +115,8 @@ export function getNextStep(state: FunnelState): FunnelState['step'] {
     case 'quiz':
       return 'results';
     case 'results':
-      return 'toolkit-offer';
-    case 'toolkit-offer':
-      if (state.wantsToolkit) {
-        return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer';
-      } else {
-        return shouldShowBookOffer(state) ? 'book-offer' : 'ie-offer';
-      }
-    case 'book-offer':
-      return 'ie-offer';
-    case 'ie-offer':
-      if (state.wantsIE) {
-        return 'checkout';
-      } else {
-        return shouldShowBundleOffer(state) ? 'bundle-offer' : 'checkout';
-      }
-    case 'bundle-offer':
+      return 'product-selection';
+    case 'product-selection':
       return 'checkout';
     case 'checkout':
       return 'success';
