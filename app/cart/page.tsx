@@ -79,6 +79,22 @@ export default function CartPage() {
     return Math.max(0, individualTotal - bundlePrice)
   }
 
+  const shouldShowBundleSavings = () => {
+    // Don't show if bundle is already selected
+    if (cartState.selectedItems.includes('Bundle')) return false
+    
+    // Don't show if no items selected
+    if (cartState.selectedItems.length === 0) return false
+    
+    const individualTotal = cartState.selectedItems.reduce((total, item) => {
+      const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
+      return total + (product?.price || 0)
+    }, 0)
+    
+    const bundlePrice = getProduct('Bundle')?.price || 0
+    return individualTotal > bundlePrice
+  }
+
   const handleContinue = async () => {
     if (!cartState.agreedToTerms || !cartState.signature.trim() || cartState.selectedItems.length === 0) return
 
@@ -171,12 +187,12 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Product Selection */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Product Cards */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Select Your Products</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                         {/* Product Cards */}
+             <Card>
+               <CardHeader>
+                 <CardTitle className="text-xl">Select Your Products</CardTitle>
+               </CardHeader>
+                               <CardContent className="space-y-4">
                 {products.map((product) => {
                   const productData = getProduct(product.key as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
                   const isSelected = cartState.selectedItems.includes(product.key)
@@ -317,31 +333,41 @@ export default function CartPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Order Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {cartState.selectedItems.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No products selected</p>
-                ) : (
-                  <>
-                    {cartState.selectedItems.map((item) => {
-                      const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
-                      return (
-                        <div key={item} className="flex justify-between items-center">
-                          <span className="text-sm">{product?.name}</span>
-                          <span className="font-semibold">${product?.price}</span>
-                        </div>
-                      )
-                    })}
-                    
-
-                    
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Total</span>
-                        <span>${total}</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                             <CardContent className="space-y-4">
+                 {cartState.selectedItems.length === 0 ? (
+                   <p className="text-gray-500 text-center py-8">No products selected</p>
+                 ) : (
+                   <>
+                     {cartState.selectedItems.map((item) => {
+                       const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
+                       return (
+                         <div key={item} className="flex justify-between items-center">
+                           <span className="text-sm">{product?.name}</span>
+                           <span className="font-semibold">${product?.price}</span>
+                         </div>
+                       )
+                     })}
+                     
+                     {/* Bundle Savings Notification - right above total */}
+                     {shouldShowBundleSavings() && (
+                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                         <div className="flex items-center space-x-2">
+                           <Check className="w-4 h-4 text-green-600" />
+                           <span className="text-sm font-medium text-green-800">
+                             Save ${calculateSavings()} with the Bundle!
+                           </span>
+                         </div>
+                       </div>
+                     )}
+                     
+                     <div className="border-t pt-2">
+                       <div className="flex justify-between items-center text-lg font-bold">
+                         <span>Total</span>
+                         <span>${total}</span>
+                       </div>
+                     </div>
+                   </>
+                 )}
 
                 <Button
                   onClick={handleContinue}
