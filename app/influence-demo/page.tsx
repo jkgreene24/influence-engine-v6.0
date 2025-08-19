@@ -342,7 +342,7 @@ export default function InfluenceDemoPage() {
   }
 
   const handleContinue = () => {
-    router.push("/cart")
+    router.push("/influence-profile")
   }
 
   if (loading) {
