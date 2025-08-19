@@ -183,8 +183,8 @@ export default function ContactPage() {
         console.error('Failed to tag lead source:', error)
       }
 
-      // Go to funnel
-      router.push("/funnel")
+      // Go to quick-quiz
+      router.push("/quick-quiz")
     } catch (err) {
       console.error("Submission error:", err)
       setError("An unexpected error occurred. Please try again.")

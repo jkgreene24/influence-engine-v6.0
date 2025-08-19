@@ -62,8 +62,8 @@ export async function POST(request: Request) {
 
     console.log("Line items for Stripe:", lineItems);
 
-    const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/funnel?step=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/funnel?step=checkout`;
+    const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cart`;
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
