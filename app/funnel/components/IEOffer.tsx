@@ -76,7 +76,7 @@ export default function IEOffer({ funnelState, updateFunnelState, updateFunnelSt
             {replacePricingTokens("The Influence Engine™ — Your Deal Coach in Your Pocket — Only [PRICE:IE_Annual]/year")}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {replacePricingTokens("Normally [PRICE:IE_Standard] — First-Adopter Rate. Keep it as long as you stay active.")}
+            First-Adopter Rate. Keep it as long as you stay active.
           </p>
         </div>
 
@@ -176,9 +176,6 @@ export default function IEOffer({ funnelState, updateFunnelState, updateFunnelSt
             <span className="text-sm text-gray-600">Annual membership:</span>
             <span className="text-2xl font-bold text-[#92278F]">
               {replacePricingTokens("[PRICE:IE_Annual]")}
-            </span>
-            <span className="text-sm text-gray-500 line-through">
-              {replacePricingTokens("[PRICE:IE_Standard]")}
             </span>
           </div>
         </div>

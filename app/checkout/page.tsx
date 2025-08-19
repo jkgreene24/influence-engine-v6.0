@@ -69,11 +69,18 @@ export default function CheckoutPage() {
         })
       })
 
-      if (response.ok) {
-        const { url } = await response.json()
-        // Redirect to Stripe checkout
-        window.location.href = url
-      } else {
+             if (response.ok) {
+         const responseData = await response.json()
+         console.log("Checkout response:", responseData)
+         
+         if (!responseData.sessionUrl) {
+           console.error("No sessionUrl in response:", responseData)
+           throw new Error("Invalid checkout session response")
+         }
+         
+         // Redirect to Stripe checkout
+         window.location.href = responseData.sessionUrl
+       } else {
         console.error("Failed to create checkout session")
         setLoading(false)
       }
@@ -130,9 +137,6 @@ export default function CheckoutPage() {
                 <p className="text-sm text-gray-600">Secure Checkout</p>
               </div>
             </div>
-            <Badge variant="outline" className="text-sm">
-              Step 5 of 6
-            </Badge>
           </div>
         </div>
       </header>
@@ -168,14 +172,7 @@ export default function CheckoutPage() {
                   )
                 })}
                 
-                {savings > 0 && (
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between items-center text-green-600">
-                      <span className="font-semibold">Bundle Savings</span>
-                      <span className="font-semibold">-${savings}</span>
-                    </div>
-                  </div>
-                )}
+
                 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center text-xl font-bold">

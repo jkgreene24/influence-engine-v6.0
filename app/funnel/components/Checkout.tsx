@@ -253,20 +253,13 @@ export default function Checkout({ funnelState, updateFunnelState, goToNextStep 
                        <div className="ml-8 space-y-2">
                          <div className="flex items-center justify-between text-sm">
                            <span className="text-gray-600">• The Book</span>
-                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:Book]')}</span>
                          </div>
                          <div className="flex items-center justify-between text-sm">
                            <span className="text-gray-600">• The Full Toolkit</span>
-                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:Toolkit]')}</span>
                          </div>
                          <div className="flex items-center justify-between text-sm">
                            <span className="text-gray-600">• The Influence Engine™ Annual</span>
-                           <span className="text-gray-500 line-through">{replacePricingTokens('[PRICE:IE_Annual]')}</span>
                          </div>
-                                                   <div className="flex items-center justify-between text-sm font-medium text-green-600">
-                            <span>Bundle Savings</span>
-                            <span>-$50</span>
-                          </div>
                        </div>
                      </div>
                    )

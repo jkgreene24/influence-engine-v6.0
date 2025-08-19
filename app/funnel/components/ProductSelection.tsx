@@ -224,17 +224,7 @@ export default function ProductSelection({ funnelState, updateFunnelState, updat
                       )
                     })}
                     
-                    {savings > 0 && (
-                      <div className="border-t pt-4">
-                        <div className="flex items-center justify-between text-green-600">
-                          <span className="font-medium">Potential Bundle Savings</span>
-                          <span className="font-semibold">-${savings}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Switch to bundle to save money!
-                        </p>
-                      </div>
-                    )}
+
                     
                     <div className="border-t pt-4">
                       <div className="flex items-center justify-between">

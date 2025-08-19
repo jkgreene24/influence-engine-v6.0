@@ -199,9 +199,6 @@ export default function CartPage() {
                           <p className="text-sm text-gray-600">{productData?.description}</p>
                           <div className="flex items-center space-x-2 mt-2">
                             <span className="text-lg font-bold text-[#92278F]">${productData?.price}</span>
-                            {productData?.normalPrice && productData.normalPrice > productData.price && (
-                              <span className="text-sm text-gray-500 line-through">${productData.normalPrice}</span>
-                            )}
                           </div>
                         </div>
                         <div className="flex items-center">
@@ -316,14 +313,7 @@ export default function CartPage() {
                       )
                     })}
                     
-                    {savings > 0 && (
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between items-center text-green-600">
-                          <span className="text-sm">Bundle Savings</span>
-                          <span className="font-semibold">-${savings}</span>
-                        </div>
-                      </div>
-                    )}
+
                     
                     <div className="border-t pt-2">
                       <div className="flex justify-between items-center text-lg font-bold">

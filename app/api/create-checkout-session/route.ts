@@ -11,6 +11,14 @@ export async function POST(request: Request) {
     const { userEmail, userName, influenceStyle, secondaryStyle, cart, metadata } = body;
 
     console.log("Creating checkout session for:", { userEmail, userName, influenceStyle, secondaryStyle, cart });
+    console.log("Environment variables check:", {
+      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
+      bookPriceId: process.env.STRIPE_BOOK_PRICE_ID,
+      toolkitPriceId: process.env.STRIPE_TOOLKIT_PRICE_ID,
+      iePriceId: process.env.STRIPE_IE_ANNUAL_PRICE_ID,
+      bundlePriceId: process.env.STRIPE_BUNDLE_PRICE_ID,
+    });
 
     // Parse cart items from metadata if not directly provided
     const cartItems = cart || (metadata?.cart ? metadata.cart.split(',') : ['toolkit']);
@@ -65,6 +73,9 @@ export async function POST(request: Request) {
     const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/cart`;
 
+    console.log("Success URL:", successUrl);
+    console.log("Cancel URL:", cancelUrl);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -88,6 +99,15 @@ export async function POST(request: Request) {
     });
 
     console.log("Checkout session created:", session.id);
+    console.log("Session URL:", session.url);
+
+    if (!session.url) {
+      console.error("No URL in Stripe session response");
+      return NextResponse.json(
+        { error: "Failed to create checkout session URL" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ sessionUrl: session.url });
   } catch (error) {

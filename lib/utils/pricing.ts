@@ -3,9 +3,7 @@ export const PRICING_TOKENS = {
   Book: 19,
   Toolkit: 79,
   IE_Annual: 499,
-  IE_Standard: 997,
   Bundle: 547,
-  Bundle_Standard: 597,
   MidTier: 199, // Placeholder for future use
 } as const;
 
@@ -45,7 +43,7 @@ export const PRODUCTS = {
   IE_Annual: {
     name: "The Influence Engine™ Annual Membership",
     price: PRICING_TOKENS.IE_Annual,
-    normalPrice: PRICING_TOKENS.IE_Standard,
+    normalPrice: PRICING_TOKENS.IE_Annual,
     description: "Your deal coach in your pocket — live, on-demand coaching for your most important conversations.",
     features: [
       "Real-Time Prep — the right words, phrasing, and tone for your style",
@@ -60,7 +58,7 @@ export const PRODUCTS = {
   Bundle: {
     name: "Influence Mastery Bundle",
     price: PRICING_TOKENS.Bundle,
-    normalPrice: PRICING_TOKENS.Bundle_Standard,
+    normalPrice: PRICING_TOKENS.Bundle,
     description: "Complete influence system at our best value",
     features: [
       "The Book",

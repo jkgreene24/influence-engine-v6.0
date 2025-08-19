@@ -96,9 +96,9 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
             <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
               Get everything you need to master influence
             </CardTitle>
-                         <p className="text-lg text-gray-600">
-               {replacePricingTokens("Normally [PRICE:Bundle_Standard] — today only [PRICE:Bundle]. Save $50 instantly.")}
-             </p>
+                                     <p className="text-lg text-gray-600">
+              Complete influence mastery bundle at our best value.
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Bundle Contents */}
@@ -112,11 +112,7 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
                   </div>
                   <h4 className="font-medium text-gray-900 mb-2">The Book</h4>
                   <p className="text-sm text-gray-600">Influence First: Why Your Deals Are Dying</p>
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500 line-through">
-                      {replacePricingTokens("[PRICE:Book]")}
-                    </span>
-                  </div>
+
                 </div>
 
                 {/* Toolkit */}
@@ -126,11 +122,7 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
                   </div>
                   <h4 className="font-medium text-gray-900 mb-2">The Full Toolkit</h4>
                   <p className="text-sm text-gray-600">Complete style-specific playbook</p>
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500 line-through">
-                      {replacePricingTokens("[PRICE:Toolkit]")}
-                    </span>
-                  </div>
+
                 </div>
 
                 {/* Influence Engine */}
@@ -140,70 +132,12 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
                   </div>
                   <h4 className="font-medium text-gray-900 mb-2">The Influence Engine™</h4>
                   <p className="text-sm text-gray-600">Annual membership</p>
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500 line-through">
-                      {replacePricingTokens("[PRICE:IE_Annual]")}
-                    </span>
-                  </div>
+
                 </div>
               </div>
             </div>
 
-                         {/* Savings Highlight */}
-             <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-               <div className="text-center">
-                 <h4 className="font-medium text-green-900 mb-2">Bundle Savings</h4>
-                 {funnelState.cart.length > 0 && (
-                   <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
-                     <p className="text-sm text-gray-600 mb-2">Your current selection:</p>
-                     <div className="text-sm text-gray-700 space-y-1">
-                       {funnelState.cart.map((item, index) => {
-                         const product = getProduct(item as any)
-                         return (
-                           <div key={index} className="flex justify-between">
-                             <span>• {product.name}</span>
-                             <span className="font-medium">${product.price}</span>
-                           </div>
-                         )
-                       })}
-                     </div>
-                     <div className="mt-2 pt-2 border-t border-green-200">
-                       <div className="flex justify-between font-medium">
-                         <span>Current Total:</span>
-                         <span>${funnelState.cart.reduce((total, item) => {
-                           const product = getProduct(item as any)
-                           return total + product.price
-                         }, 0)}</span>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-                 <div className="flex justify-center items-center space-x-4">
-                   <div className="text-center">
-                     <p className="text-sm text-gray-600">Regular Price</p>
-                     <p className="text-lg font-semibold text-gray-500 line-through">
-                       {replacePricingTokens("[PRICE:Bundle_Standard]")}
-                     </p>
-                   </div>
-                   <div className="text-2xl text-green-600">→</div>
-                   <div className="text-center">
-                     <p className="text-sm text-gray-600">Bundle Price</p>
-                     <p className="text-2xl font-bold text-[#92278F]">
-                       {replacePricingTokens("[PRICE:Bundle]")}
-                     </p>
-                   </div>
-                 </div>
-                 <p className="text-green-700 font-medium mt-2">
-                   {funnelState.cart.length > 0 
-                     ? `Save $${funnelState.cart.reduce((total, item) => {
-                         const product = getProduct(item as any)
-                         return total + product.price
-                       }, 0) - PRICING_TOKENS.Bundle} by upgrading to the bundle!`
-                     : "Save $50 instantly!"
-                   }
-                 </p>
-               </div>
-             </div>
+
 
             {/* Call to Action */}
                          <div className="bg-[#92278F]/5 p-6 rounded-lg border border-[#92278F]/20">
@@ -241,9 +175,6 @@ export default function BundleOffer({ funnelState, updateFunnelState, updateFunn
             <span className="text-sm text-gray-600">Bundle price:</span>
             <span className="text-2xl font-bold text-[#92278F]">
               {replacePricingTokens("[PRICE:Bundle]")}
-            </span>
-            <span className="text-sm text-gray-500 line-through">
-              {replacePricingTokens("[PRICE:Bundle_Standard]")}
             </span>
           </div>
         </div>
