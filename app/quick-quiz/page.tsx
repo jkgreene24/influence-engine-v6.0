@@ -62,7 +62,7 @@ const entryQuestions: QuizQuestion[] = [
     answers: [
       { id: "A", text: "I bring structure and steady follow-through.", styles: ["anchor", "navigator"], route: "structure" },
       { id: "B", text: "I create emotional safety and strong human connection.", styles: ["diplomat", "connector"], route: "relationship" },
-      { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "blend" },
+      { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "fast-paced" },
       { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], route: "blend" },
       { id: "E", text: "None of these feel quite right — show me totally different options.", styles: ["mixed"], route: "fast-paced-alt" },
     ],
@@ -769,7 +769,11 @@ export default function QuickQuiz() {
           const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
           if (answer && "route" in answer && answer.route) {
             const route = answer.route as string
-            if (route === "fast-paced-alt") {
+            if (route === "blend") {
+              setNeedsBlendClarity(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else if (route === "fast-paced-alt") {
               setNeedsAlternative(true)
               setCurrentQuestionIndex(0)
               setSelectedAnswer("")
