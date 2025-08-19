@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight, Zap, Users, Anchor, Link, Navigation, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+
 interface QuizQuestion {
   id: string
   question: string
@@ -26,7 +27,7 @@ interface QuizResult {
 }
 
 interface QuizState {
-  step: "entry" | "path" | "blend" | "confirmation" | "result"
+  step: "entry" | "path" | "blend" | "confirmation" | "result" | "quiz"
   questionIndex: number
   selectedPath: string
   answers: Record<string, string>
@@ -59,10 +60,11 @@ const entryQuestions: QuizQuestion[] = [
     id: "entry1",
     question: "What best describes how you lead or influence others?",
     answers: [
-      { id: "A", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "fast-paced" },
-      { id: "B", text: "I bring structure and steady follow-through.", styles: ["anchor", "navigator"], route: "structure" },
-      { id: "C", text: "I create emotional safety and strong human connection.", styles: ["diplomat", "connector"], route: "relationship" },
-      { id: "D", text: "Honestly? A mix of two or more of these.", styles: ["mixed"], route: "blend" },
+      { id: "A", text: "I bring structure and steady follow-through.", styles: ["anchor", "navigator"], route: "structure" },
+      { id: "B", text: "I create emotional safety and strong human connection.", styles: ["diplomat", "connector"], route: "relationship" },
+      { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "fast-paced" },
+      { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], route: "blend" },
+      { id: "E", text: "None of these feel quite right — show me totally different options.", styles: ["mixed"], route: "fast-paced" },
     ],
   },
   {
@@ -70,8 +72,8 @@ const entryQuestions: QuizQuestion[] = [
     question: "What frustrates you most in group situations?",
     answers: [
       { id: "A", text: "When nothing is getting done.", styles: ["catalyst"], route: "fast-paced" },
-      { id: "B", text: "When people are disorganized or short-sighted.", styles: ["anchor", "navigator"], route: "structure" },
-      { id: "C", text: "When emotions are ignored or people feel left out.", styles: ["diplomat", "connector"], route: "relationship" },
+      { id: "B", text: "When emotions are ignored or people feel left out.", styles: ["diplomat", "connector"], route: "relationship" },
+      { id: "C", text: "When people are disorganized or short-sighted.", styles: ["anchor", "navigator"], route: "structure" },
     ],
   },
 ]
@@ -82,18 +84,20 @@ const pathQuestions = {
       id: "fp1",
       question: "When things stall out, I usually:",
       answers: [
-        { id: "A", text: "Inject energy and urgency to move it forward.", styles: ["catalyst"] },
-        { id: "B", text: "Talk to people and get everyone back on the same page.", styles: ["connector"] },
-        { id: "C", text: "Not quite either of these. Show me another option.", styles: ["mixed"], followUp: "fp1-alt" },
+        { id: "A", text: "Provide structure and clarity so others can act.", styles: ["anchor"] },
+        { id: "B", text: "I energize people and drive forward movement.", styles: ["catalyst"] },
+        { id: "C", text: "Talk to people and get everyone back on the same page.", styles: ["connector"] },
+        { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], followUp: "fp1-alt" },
+        { id: "E", text: "None of these feel right — show me totally different options.", styles: ["mixed"], followUp: "fp1-alt" },
       ],
     },
     {
       id: "fp1-alt",
-      question: "When things stall out, what feels most natural to you?",
+      question: "You said none of those felt quite right—let's try again. When things stall out, what feels most natural to you?",
       answers: [
-        { id: "A", text: "Providing structure and calm", styles: ["anchor"] },
-        { id: "B", text: "Holding space and emotional safety", styles: ["diplomat"] },
-        { id: "C", text: "Framing the big picture", styles: ["navigator"] },
+        { id: "A", text: "Framing the big picture", styles: ["navigator"] },
+        { id: "B", text: "Providing structure and calm", styles: ["anchor"] },
+        { id: "C", text: "Creating emotional stability and a sense of trust", styles: ["diplomat"] },
       ],
     },
     {
@@ -120,18 +124,20 @@ const pathQuestions = {
       id: "st1",
       question: "In complex situations, I prefer to:",
       answers: [
-        { id: "A", text: "Break it into steps and stabilize it.", styles: ["anchor"] },
-        { id: "B", text: "Step back and look at long-term impacts.", styles: ["navigator"] },
-        { id: "C", text: "Not quite either of these. Show me another option.", styles: ["mixed"], followUp: "st1-alt" },
+        { id: "A", text: "Step back and look at long-term impacts.", styles: ["navigator"] },
+        { id: "B", text: "Break it into steps and stabilize it.", styles: ["anchor"] },
+        { id: "C", text: "Sparking energy and action.", styles: ["catalyst"] },
+        { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], followUp: "st1-alt" },
+        { id: "E", text: "None of these feel right — show me totally different options.", styles: ["mixed"], followUp: "st1-alt" },
       ],
     },
     {
       id: "st1-alt",
-      question: "In complex situations, what feels more natural to you?",
+      question: "You said none of those felt quite right—let's try again. In complex situations, what feels more natural to you?",
       answers: [
         { id: "A", text: "Sparking energy and action", styles: ["catalyst"] },
-        { id: "B", text: "Holding space and emotional safety", styles: ["diplomat"] },
-        { id: "C", text: "Creating clarity and unity", styles: ["connector"] },
+        { id: "B", text: "Building trust and emotional safety", styles: ["diplomat"] },
+        { id: "C", text: "Clarifying the vision and next steps", styles: ["navigator"] },
       ],
     },
     {
@@ -158,14 +164,16 @@ const pathQuestions = {
       id: "rel1",
       question: "My default way of helping is:",
       answers: [
-        { id: "A", text: "Listening and tuning into emotions.", styles: ["diplomat"] },
-        { id: "B", text: "Clarifying and building shared understanding.", styles: ["connector"] },
-        { id: "C", text: "Not quite either of these. Show me another option.", styles: ["mixed"], followUp: "rel1-alt" },
+        { id: "A", text: "Clarifying and building shared understanding.", styles: ["connector"] },
+        { id: "B", text: "Listening and tuning into emotions.", styles: ["diplomat"] },
+        { id: "C", text: "Sparking energy and action", styles: ["catalyst"] },
+        { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], followUp: "rel1-alt" },
+        { id: "E", text: "None of these feel right — show me totally different options.", styles: ["mixed"], followUp: "rel1-alt" },
       ],
     },
     {
       id: "rel1-alt",
-      question: "When someone needs help, what's your natural instinct?",
+      question: "You said none of those felt quite right—let's try again. When someone needs help, what's your natural instinct?",
       answers: [
         { id: "A", text: "Providing structure and calm", styles: ["anchor"] },
         { id: "B", text: "Sparking action or momentum", styles: ["catalyst"] },
@@ -219,33 +227,93 @@ const confirmationQuestions = [
     id: "confirm1",
     question: "People often describe me as:",
     answers: [
-      { id: "A", text: "Bold and energizing", styles: ["catalyst"] },
-      { id: "B", text: "Strategic and insightful", styles: ["navigator"] },
-      { id: "C", text: "Empathetic and emotionally present", styles: ["diplomat"] },
-      { id: "D", text: "Calm and dependable", styles: ["anchor"] },
-      { id: "E", text: "Collaborative and connective", styles: ["connector"] },
+      { id: "A", text: "Empathetic and emotionally present", styles: ["diplomat"] },
+      { id: "B", text: "Calm and dependable", styles: ["anchor"] },
+      { id: "C", text: "Strategic and insightful", styles: ["navigator"] },
+      { id: "D", text: "Collaborative and connective", styles: ["connector"] },
+      { id: "E", text: "Bold and energizing", styles: ["catalyst"] },
     ],
   },
   {
     id: "confirm2",
     question: "When I'm leading, I care most about:",
     answers: [
-      { id: "A", text: "Getting things done quickly", styles: ["catalyst"] },
-      { id: "B", text: "Making sure people feel safe and seen", styles: ["diplomat"] },
-      { id: "C", text: "Long-term vision and impact", styles: ["navigator"] },
-      { id: "D", text: "A clean plan and reliable process", styles: ["anchor"] },
-      { id: "E", text: "Everyone feeling aligned and involved", styles: ["connector"] },
+      { id: "A", text: "Making sure people feel safe and seen", styles: ["diplomat"] },
+      { id: "B", text: "Long-term vision and impact", styles: ["navigator"] },
+      { id: "C", text: "A clean plan and reliable process", styles: ["anchor"] },
+      { id: "D", text: "Everyone feeling aligned and involved", styles: ["connector"] },
+      { id: "E", text: "Getting things done quickly", styles: ["catalyst"] },
     ],
   },
   {
     id: "confirm3",
     question: "My biggest influence strength is:",
     answers: [
-      { id: "A", text: "Driving action", styles: ["catalyst"] },
-      { id: "B", text: "Emotional presence", styles: ["diplomat"] },
-      { id: "C", text: "Strategic vision", styles: ["navigator"] },
-      { id: "D", text: "Steady structure", styles: ["anchor"] },
-      { id: "E", text: "Unifying people", styles: ["connector"] },
+      { id: "A", text: "Unifying people", styles: ["connector"] },
+      { id: "B", text: "Steady structure", styles: ["anchor"] },
+      { id: "C", text: "Emotional presence", styles: ["diplomat"] },
+      { id: "D", text: "Strategic vision", styles: ["navigator"] },
+      { id: "E", text: "Driving action", styles: ["catalyst"] },
+    ],
+  },
+]
+
+const pressureQuestions = [
+  {
+    id: "pressure1",
+    question: "When I'm under pressure, I tend to:",
+    answers: [
+      { id: "A", text: "Reach out and reconnect people", styles: ["connector"] },
+      { id: "B", text: "Try to re-stabilize and get back on track", styles: ["anchor"] },
+      { id: "C", text: "Become extra sensitive to how others feel", styles: ["diplomat"] },
+      { id: "D", text: "Double down and push harder", styles: ["catalyst"] },
+      { id: "E", text: "Withdraw to re-evaluate", styles: ["navigator"] },
+    ],
+  },
+  {
+    id: "pressure2",
+    question: "In high-stakes situations, I naturally:",
+    answers: [
+      { id: "A", text: "Stick to the plan and preserve what's working", styles: ["anchor"] },
+      { id: "B", text: "Move quickly to resolve it", styles: ["catalyst"] },
+      { id: "C", text: "Focus on keeping people calm and heard", styles: ["diplomat"] },
+      { id: "D", text: "Think long-term and assess ripple effects", styles: ["navigator"] },
+      { id: "E", text: "Make sure no one is left behind", styles: ["connector"] },
+    ],
+  },
+  {
+    id: "pressure3",
+    question: "When I'm caught off guard, I'm most likely to:",
+    answers: [
+      { id: "A", text: "Pause and gather facts", styles: ["anchor"] },
+      { id: "B", text: "Freeze and observe", styles: ["navigator"] },
+      { id: "C", text: "Jump into action", styles: ["catalyst"] },
+      { id: "D", text: "Look around to see how others are reacting", styles: ["diplomat"] },
+      { id: "E", text: "Ask questions and gather the group", styles: ["connector"] },
+    ],
+  },
+]
+
+const blendClarityQuestions = [
+  {
+    id: "blend1",
+    question: "I influence best when I…",
+    answers: [
+      { id: "A", text: "Can spark action and connect people", styles: ["catalyst", "connector"] },
+      { id: "B", text: "Can calm emotions while keeping us moving", styles: ["diplomat", "anchor"] },
+      { id: "C", text: "Can create clarity and strategy", styles: ["navigator", "anchor"] },
+      { id: "D", text: "Can lead with urgency but emotional clarity", styles: ["catalyst", "diplomat"] },
+      { id: "E", text: "Can blend foresight with bold execution", styles: ["navigator", "catalyst"] },
+      { id: "F", text: "Honestly? I don't fit neatly into any of these — show me more.", styles: ["mixed"], followUp: "blend1-alt" },
+    ],
+  },
+  {
+    id: "blend1-alt",
+    question: "You said \"none\" — which feels more true?",
+    answers: [
+      { id: "A", text: "I shift based on what's needed", styles: ["high-versatility"] },
+      { id: "B", text: "I'm not sure how I influence — I just do it intuitively", styles: ["intuitive"] },
+      { id: "C", text: "I do a bit of all of them depending on who I'm with", styles: ["adaptive"] },
     ],
   },
 ]
@@ -311,111 +379,71 @@ const getInfluenceIcon = (style: string, size = "w-8 h-8") => {
 const styleDescriptions = {
   catalyst: {
     name: "Catalyst",
-    description:
-      "You create momentum and drive outcomes. People follow you because of your energy, confidence, and push-forward mindset.",
+    description: "You lead with urgency and bold energy, moving people into action.",
+    strengths: "Directness, momentum, fast decision-making",
     color: "bg-orange-500",
   },
   connector: {
     name: "Connector",
-    description: "You build bridges. You create alignment and connection that brings people together to make progress.",
+    description: "You lead by bringing people together and creating alignment.",
+    strengths: "Group awareness, facilitation, collaboration",
     color: "bg-purple-500",
+  },
+  diplomat: {
+    name: "Diplomat",
+    description: "You create emotional safety and hold space for others to thrive.",
+    strengths: "Empathy, conflict reduction, emotional clarity",
+    color: "bg-pink-500",
   },
   anchor: {
     name: "Anchor",
-    description:
-      "You provide consistency and structure. People trust you because you're steady, clear, and dependable.",
+    description: "You lead with structure, consistency, and grounded presence.",
+    strengths: "Stability, process, reliability",
     color: "bg-green-500",
   },
   navigator: {
     name: "Navigator",
-    description: "You lead with vision and strategic thinking. You zoom out and keep the big picture in focus.",
+    description: "You see long-range patterns and guide others with insight and foresight.",
+    strengths: "Strategy, vision, pattern recognition",
     color: "bg-blue-500",
-  },
-  diplomat: {
-    name: "Diplomat",
-    description:
-      "You influence through empathy and presence. People open up around you and feel understood and supported.",
-    color: "bg-pink-500",
   },
 }
 
 const blendDescriptions = {
-  "catalyst-navigator": "You combine bold momentum with smart strategy. People are drawn to your drive, but stay because of your clarity and planning.",
-  "catalyst-connector": "You move fast and bring people with you. Your energy inspires others, and your ability to connect makes it contagious.",
-  "catalyst-diplomat": "You lead with passion but always tune in to others. You push forward while creating space for feelings and nuance.",
-  "catalyst-anchor": "You bring focused energy and long-term consistency. You push things forward without losing your grounding.",
-  "navigator-catalyst": "You lead with strategy, then bring the fire when it counts. People trust your plan, but feel your urgency.",
-  "navigator-connector": "You influence through insight and intuition. You read the situation and the people in it, helping everyone move forward together.",
-  "navigator-diplomat": "You lead with clarity and compassion. People look to you for smart plans that also feel fair and considerate.",
-  "navigator-anchor": "You combine strategy and steadiness. People trust you to think ahead and hold the line when it counts.",
-  "connector-catalyst": "You lead with relationships and energize others to move. Your influence feels both personal and powerful.",
-  "connector-navigator": "You build trust quickly — then guide people with clarity. You connect on a human level and show them what's possible.",
-  "connector-diplomat": "You connect deeply and calmly. People trust you because you listen, reflect, and create emotional safety.",
-  "connector-anchor": "You're emotionally tuned-in and unwavering. People feel safe opening up to you because you're both relatable and reliable.",
-  "diplomat-catalyst": "You lead with empathy and add fire when it matters. People feel your care but also your conviction.",
-  "diplomat-navigator": "You guide with empathy and strategic thinking. You're emotionally grounded and intellectually clear.",
-  "diplomat-connector": "You influence through emotional insight and connection. You make people feel understood, valued, and motivated to engage.",
-  "diplomat-anchor": "You are a calm force of trust. People open up because you're steady and emotionally present — a rock in high-stakes moments.",
-  "anchor-catalyst": "You're steady and strong — with a surprising ability to ignite momentum when needed. People rely on your foundation and follow your lead when you decide to move.",
-  "anchor-navigator": "You bring stability and foresight. People trust you to plan ahead and stick with the process until the outcome is secure.",
-  "anchor-connector": "You are loyal, grounded, and people-first. You build long-term trust through presence and relational consistency.",
-  "anchor-diplomat": "You offer emotional steadiness and wisdom. People feel safe sharing with you because you lead with quiet confidence.",
+  "catalyst-connector": {
+    description: "You drive change with both action and group momentum.",
+    strengths: "Energy, inclusivity, social clarity",
+  },
+  "connector-diplomat": {
+    description: "You build trust through connection and emotional awareness.",
+    strengths: "Relational harmony, empathy, mediation",
+  },
+  "anchor-navigator": {
+    description: "You stabilize the present while guiding toward the future.",
+    strengths: "Planning, system design, steadiness",
+  },
+  "navigator-anchor": {
+    description: "You structure ideas into clear strategies with long-term value.",
+    strengths: "Strategic calm, foresight, planning",
+  },
+  "catalyst-diplomat": {
+    description: "You spark action with emotional clarity and courage.",
+    strengths: "Momentum with heart, trust-building",
+  },
+  "navigator-catalyst": {
+    description: "You combine strategic foresight with bold execution.",
+    strengths: "Vision, decisive action, influence",
+  },
+  "diplomat-anchor": {
+    description: "You offer calm emotional steadiness and dependable support.",
+    strengths: "Safe presence, loyalty, follow-through",
+  },
 }
 
-const getStepInfo = (step: string, path?: string) => {
-  switch (step) {
-    case "entry":
-      return {
-        title: "Step 1: Understanding Your Natural Approach",
-        subtitle: "Let's start by identifying your core influence patterns",
-        description:
-          "These questions help us understand how you naturally lead and what drives your communication style.",
-        color: "from-[#92278F] to-purple-600",
-      }
-    case "path":
-      const pathTitles = {
-        "fast-paced": "Step 2: Fast-Paced Influencer Path",
-        structure: "Step 2: Structure & Vision Path",
-        relationship: "Step 2: Relationship-Centered Path",
-      }
-      const pathDescriptions = {
-        "fast-paced": "You're action-oriented! Let's explore whether you're more of a Catalyst or Connector.",
-        structure: "You value stability and planning! Let's see if you're more Anchor or Navigator.",
-        relationship: "You prioritize people and connection! Let's determine if you're more Diplomat or Connector.",
-      }
-      return {
-        title: pathTitles[path as keyof typeof pathTitles] || "Step 2: Exploring Your Style",
-        subtitle: "Diving deeper into your influence approach",
-        description:
-          pathDescriptions[path as keyof typeof pathDescriptions] || "Let's explore your specific style patterns.",
-        color: "from-blue-600 to-indigo-600",
-      }
-    case "blend":
-      return {
-        title: "Step 3: Blend Clarification",
-        subtitle: "Let's clarify your blended approach",
-        description: "You tend to blend different styles. Let's understand which combinations feel most natural to you.",
-        color: "from-green-600 to-emerald-600",
-      }
-    case "confirmation":
-      return {
-        title: "Step 4: Style Confirmation",
-        subtitle: "Final questions to confirm your style",
-        description: "These questions help us finalize your influence style profile and ensure accuracy.",
-        color: "from-purple-600 to-indigo-600",
-      }
-    default:
-      return {
-        title: "Influence Style Quiz",
-        subtitle: "",
-        description: "",
-        color: "from-[#92278F] to-purple-600",
-      }
-  }
-}
+
 
 export default function QuickQuiz() {
-  const [currentStep, setCurrentStep] = useState<"entry" | "path" | "blend" | "confirmation" | "result">("entry")
+  const [currentStep, setCurrentStep] = useState<"quiz" | "result">("quiz")
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedPath, setSelectedPath] = useState<string>("")
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -423,17 +451,30 @@ export default function QuickQuiz() {
   const [result, setResult] = useState<QuizResult | null>(null)
   const [needsBlend, setNeedsBlend] = useState(false)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
+  const [needsPressure, setNeedsPressure] = useState(false)
+  const [needsBlendClarity, setNeedsBlendClarity] = useState(false)
   const [history, setHistory] = useState<QuizState[]>([])
   const [randomizedQuestions, setRandomizedQuestions] = useState<{
     entry: QuizQuestion[]
     fastPaced: QuizQuestion[]
     structure: QuizQuestion[]
     relationship: QuizQuestion[]
-    blend: QuizQuestion[]
     confirmation: QuizQuestion[]
-    tiebreaker: QuizQuestion[]
+    pressure: QuizQuestion[]
+    blendClarity: QuizQuestion[]
   } | null>(null)
+  const [userData, setUserData] = useState<any>(null)
   const router = useRouter()
+
+  // Load user data from localStorage on component mount
+  useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
+    if (!currentUser) {
+      router.push("/")
+      return
+    }
+    setUserData(currentUser)
+  }, [router])
 
   // Client-side randomization
   useEffect(() => {
@@ -454,15 +495,15 @@ export default function QuickQuiz() {
         ...q,
         answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
       })),
-      blend: blendQuestions.map(q => ({
-        ...q,
-        answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
-      })),
       confirmation: confirmationQuestions.map(q => ({
         ...q,
         answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
       })),
-      tiebreaker: tiebreakerQuestions.map(q => ({
+      pressure: pressureQuestions.map(q => ({
+        ...q,
+        answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
+      })),
+      blendClarity: blendClarityQuestions.map(q => ({
         ...q,
         answers: randomizeAnswers(q.answers.map(({ id, ...rest }) => rest))
       }))
@@ -474,14 +515,20 @@ export default function QuickQuiz() {
     if (!randomizedQuestions) {
       // Return original questions during SSR
       switch (currentStep) {
-        case "entry":
+        case "quiz":
+          if (needsBlendClarity) {
+            return blendClarityQuestions
+          }
+          if (needsPressure) {
+            return pressureQuestions
+          }
+          if (needsConfirmation) {
+            return confirmationQuestions
+          }
+          if (selectedPath) {
+            return pathQuestions[selectedPath as keyof typeof pathQuestions] || []
+          }
           return entryQuestions
-        case "path":
-          return pathQuestions[selectedPath as keyof typeof pathQuestions] || []
-        case "blend":
-          return blendQuestions
-        case "confirmation":
-          return confirmationQuestions
         default:
           return []
       }
@@ -489,17 +536,23 @@ export default function QuickQuiz() {
 
     // Return randomized questions on client
     switch (currentStep) {
-      case "entry":
-        return randomizedQuestions.entry
-      case "path":
+      case "quiz":
+        if (needsBlendClarity) {
+          return randomizedQuestions.blendClarity
+        }
+        if (needsPressure) {
+          return randomizedQuestions.pressure
+        }
+        if (needsConfirmation) {
+          return randomizedQuestions.confirmation
+        }
+        if (!selectedPath) {
+          return randomizedQuestions.entry
+        }
         if (selectedPath === "fast-paced") return randomizedQuestions.fastPaced
         if (selectedPath === "structure") return randomizedQuestions.structure
         if (selectedPath === "relationship") return randomizedQuestions.relationship
         return []
-      case "blend":
-        return randomizedQuestions.blend
-      case "confirmation":
-        return randomizedQuestions.confirmation
       default:
         return []
     }
@@ -516,61 +569,75 @@ export default function QuickQuiz() {
     if (totalQuestionsInStep === 0) return 0
     
     // Calculate progress within the current step
-    const stepProgress = Math.round(((currentQuestionIndex + 1) / totalQuestionsInStep) * 100)
-    
-    // Calculate overall progress across all steps
-    let totalQuestions = 0
-    let completedQuestions = 0
-
-    // Entry questions (always 2)
-    totalQuestions += 2
-    if (currentStep === "entry") {
-      completedQuestions = currentQuestionIndex
-    } else {
-      completedQuestions += 2 // Entry questions completed
-    }
-
-    // Path questions (if we have a selected path)
-    if (selectedPath && currentStep !== "entry") {
-      const pathQuestionCount = pathQuestions[selectedPath as keyof typeof pathQuestions]?.length || 0
-      totalQuestions += pathQuestionCount
-      
-      if (currentStep === "path") {
-        completedQuestions += currentQuestionIndex
-      } else {
-        completedQuestions += pathQuestionCount // Path questions completed
-      }
-    }
-
-    // Blend questions (if needed)
-    if (needsBlend && currentStep !== "entry") {
-      totalQuestions += 2
-      if (currentStep === "blend") {
-        completedQuestions += currentQuestionIndex
-      } else if (currentStep === "confirmation" || currentStep === "result") {
-        completedQuestions += 2 // Blend questions completed
-      }
-    }
-
-    // Confirmation questions (if needed)
-    if (needsConfirmation && (currentStep === "confirmation" || currentStep === "result")) {
-      totalQuestions += 3
-      if (currentStep === "confirmation") {
-        completedQuestions += currentQuestionIndex
-      } else if (currentStep === "result") {
-        completedQuestions += 3 // Confirmation questions completed
-      }
-    }
-
-    // Calculate overall progress
-    const overallProgress = Math.min(Math.round((completedQuestions / totalQuestions) * 100), 100)
-    
-    // Return the step progress for better user experience
-    return stepProgress
+    return Math.round(((currentQuestionIndex + 1) / totalQuestionsInStep) * 100)
   }
 
   const progress = getTotalProgress()
-  const stepInfo = getStepInfo(currentStep, selectedPath)
+  
+  const getStepInfo = (step: string, path?: string) => {
+    switch (step) {
+      case "quiz":
+        if (needsBlendClarity) {
+          return {
+            title: "Understanding Your Blend",
+            subtitle: "Let's clarify your unique combination of styles",
+            description: "You show patterns of multiple influence styles. Let's understand how they work together.",
+            color: "from-purple-600 to-pink-600",
+          }
+        }
+        if (needsPressure) {
+          return {
+            title: "Under Pressure",
+            subtitle: "How you respond when things get intense",
+            description: "Your natural responses under pressure reveal your core influence patterns.",
+            color: "from-red-600 to-orange-600",
+          }
+        }
+        if (needsConfirmation) {
+          return {
+            title: "Style Confirmation",
+            subtitle: "Final questions to confirm your influence style",
+            description: "These questions help us confirm your primary influence approach.",
+            color: "from-blue-600 to-indigo-600",
+          }
+        }
+        if (!path) {
+          return {
+            title: "Understanding Your Natural Approach",
+            subtitle: "Let's start by identifying your core influence patterns",
+            description:
+              "These questions help us understand how you naturally lead and what drives your communication style.",
+            color: "from-[#92278F] to-purple-600",
+          }
+        }
+        const pathTitles = {
+          "fast-paced": "Fast-Paced Influencer Path",
+          structure: "Structure & Vision Path",
+          relationship: "Relationship-Centered Path",
+        }
+        const pathDescriptions = {
+          "fast-paced": "You're action-oriented! Let's explore whether you're more of a Catalyst or Connector.",
+          structure: "You value stability and planning! Let's see if you're more Anchor or Navigator.",
+          relationship: "You prioritize people and connection! Let's determine if you're more Diplomat or Connector.",
+        }
+        return {
+          title: pathTitles[path as keyof typeof pathTitles] || "Exploring Your Style",
+          subtitle: "Diving deeper into your influence approach",
+          description:
+            pathDescriptions[path as keyof typeof pathDescriptions] || "Let's explore your specific style patterns.",
+          color: "from-blue-600 to-indigo-600",
+        }
+      default:
+        return {
+          title: "Influence Style Quiz",
+          subtitle: "",
+          description: "",
+          color: "from-[#92278F] to-purple-600",
+        }
+    }
+  }
+  
+  const stepInfo = getStepInfo("quiz", selectedPath)
 
   const handleAnswerSelect = (answerId: string) => {
     setSelectedAnswer(answerId)
@@ -578,7 +645,7 @@ export default function QuickQuiz() {
 
   const saveCurrentState = () => {
     const state: QuizState = {
-      step: currentStep,
+      step: "quiz",
       questionIndex: currentQuestionIndex,
       selectedPath,
       answers: { ...answers },
@@ -611,8 +678,12 @@ export default function QuickQuiz() {
           question = randomizedQuestions.structure.find((q) => q.id === questionId)
         } else if (questionId.startsWith("rel")) {
           question = randomizedQuestions.relationship.find((q) => q.id === questionId)
-        } else if (questionId.startsWith("tie")) {
-          question = randomizedQuestions.tiebreaker.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("confirm")) {
+          question = randomizedQuestions.confirmation.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("pressure")) {
+          question = randomizedQuestions.pressure.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("blend")) {
+          question = randomizedQuestions.blendClarity.find((q) => q.id === questionId)
         }
       } else {
         // Fallback to original questions
@@ -624,8 +695,12 @@ export default function QuickQuiz() {
           question = pathQuestions["structure"].find((q) => q.id === questionId)
         } else if (questionId.startsWith("rel")) {
           question = pathQuestions["relationship"].find((q) => q.id === questionId)
-        } else if (questionId.startsWith("tie")) {
-          question = tiebreakerQuestions.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("confirm")) {
+          question = confirmationQuestions.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("pressure")) {
+          question = pressureQuestions.find((q) => q.id === questionId)
+        } else if (questionId.startsWith("blend")) {
+          question = blendClarityQuestions.find((q) => q.id === questionId)
         }
       }
 
@@ -675,62 +750,71 @@ export default function QuickQuiz() {
     }
     setAnswers(newAnswers)
 
-    if (currentStep === "entry") {
-      if (currentQuestionIndex === 0) {
-        // First entry question - determine initial path
-        const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
-        if (answer && "route" in answer && answer.route) {
-          setSelectedPath(answer.route as string)
-        }
-        setCurrentQuestionIndex(1)
-        setSelectedAnswer("")
-      } else {
-        // Second entry question - confirm path and move to path questions
-        const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
-        if (answer && "route" in answer && answer.route) {
-          setSelectedPath(answer.route as string)
-        }
-        
-        // Check if we need blend detection
-        const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
-          const allQuestions = [...entryQuestions]
-          for (const q of allQuestions) {
-            const a = q.answers.find((ans) => ans.id === answerId)
-            if (a && a.styles.includes("mixed")) return true
+    if (currentStep === "quiz") {
+      if (!selectedPath) {
+        // Entry questions
+        if (currentQuestionIndex === 0) {
+          // First entry question - determine initial path
+          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
+          if (answer && "route" in answer && answer.route) {
+            setSelectedPath(answer.route as string)
           }
-          return false
-        })
-
-        if (mixedAnswers.length >= 1) {
-          setNeedsBlend(true)
-          setCurrentStep("blend")
-          setCurrentQuestionIndex(0)
+          setCurrentQuestionIndex(1)
           setSelectedAnswer("")
         } else {
-          setCurrentStep("path")
+          // Second entry question - confirm path and move to path questions
+          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
+          if (answer && "route" in answer && answer.route) {
+            setSelectedPath(answer.route as string)
+          }
+          
+          // Check if we need blend detection
+          const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
+            const allQuestions = [...entryQuestions]
+            for (const q of allQuestions) {
+              const a = q.answers.find((ans) => ans.id === answerId)
+              if (a && a.styles.includes("mixed")) return true
+            }
+            return false
+          })
+
+          if (mixedAnswers.length >= 1) {
+            setNeedsBlendClarity(true)
+            setCurrentQuestionIndex(0)
+            setSelectedAnswer("")
+          } else {
+            setCurrentQuestionIndex(0)
+            setSelectedAnswer("")
+          }
+        }
+      } else if (needsBlendClarity) {
+        // Blend clarity questions
+        if (currentQuestionIndex < blendClarityQuestions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
+          setSelectedAnswer("")
+        } else {
+          // Move to pressure questions or confirmation
+          setNeedsPressure(true)
+          setNeedsBlendClarity(false)
           setCurrentQuestionIndex(0)
           setSelectedAnswer("")
         }
-      }
-    } else if (currentStep === "path") {
-      if (currentQuestionIndex < 2) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1)
-        setSelectedAnswer("")
-      } else {
-        // Check if we need confirmation questions
-        const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
-          const allQuestions = [...entryQuestions, ...Object.values(pathQuestions).flat() as QuizQuestion[]]
-          for (const q of allQuestions) {
-            const a = q.answers.find((ans) => ans.id === answerId)
-            if (a && a.styles.includes("mixed")) return true
-          }
-          return false
-        })
-
-        if (mixedAnswers.length >= 2) {
+      } else if (needsPressure) {
+        // Pressure questions
+        if (currentQuestionIndex < pressureQuestions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
+          setSelectedAnswer("")
+        } else {
+          // Move to confirmation questions
           setNeedsConfirmation(true)
-          setCurrentStep("confirmation")
+          setNeedsPressure(false)
           setCurrentQuestionIndex(0)
+          setSelectedAnswer("")
+        }
+      } else if (needsConfirmation) {
+        // Confirmation questions
+        if (currentQuestionIndex < confirmationQuestions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
           setSelectedAnswer("")
         } else {
           // Calculate final result
@@ -741,31 +825,34 @@ export default function QuickQuiz() {
           // Update database with quiz results instantly when quiz is completed
           updateQuizResultsInDatabase(finalResult)
         }
-      }
-    } else if (currentStep === "blend") {
-      if (currentQuestionIndex < 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1)
-        setSelectedAnswer("")
       } else {
-        // Move to confirmation questions
-        setNeedsConfirmation(true)
-        setCurrentStep("confirmation")
-        setCurrentQuestionIndex(0)
-        setSelectedAnswer("")
-      }
-    } else if (currentStep === "confirmation") {
-      if (currentQuestionIndex < 2) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1)
-        setSelectedAnswer("")
-              } else {
-          // Calculate final result
-          const finalResult = calculateResult(newAnswers)
-          setResult(finalResult)
-          setCurrentStep("result")
-          
-          // Update database with quiz results instantly when quiz is completed
-          updateQuizResultsInDatabase(finalResult)
+        // Path questions
+        if (currentQuestionIndex < 2) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
+          setSelectedAnswer("")
+        } else {
+          // Check if we need pressure questions
+          const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
+            const allQuestions = [...entryQuestions, ...Object.values(pathQuestions).flat() as QuizQuestion[]]
+            for (const q of allQuestions) {
+              const a = q.answers.find((ans) => ans.id === answerId)
+              if (a && a.styles.includes("mixed")) return true
+            }
+            return false
+          })
+
+          if (mixedAnswers.length >= 2) {
+            setNeedsPressure(true)
+            setCurrentQuestionIndex(0)
+            setSelectedAnswer("")
+          } else {
+            // Move to confirmation questions
+            setNeedsConfirmation(true)
+            setCurrentQuestionIndex(0)
+            setSelectedAnswer("")
+          }
         }
+      }
     }
   }
 
@@ -776,7 +863,6 @@ export default function QuickQuiz() {
     const previousState = history[history.length - 1]
 
     // Restore the previous state
-    setCurrentStep(previousState.step)
     setCurrentQuestionIndex(previousState.questionIndex)
     setSelectedPath(previousState.selectedPath)
     setAnswers(previousState.answers)
@@ -786,34 +872,18 @@ export default function QuickQuiz() {
     // Set the selected answer for the previous question
     const prevQuestions = (() => {
       if (randomizedQuestions) {
-        switch (previousState.step) {
-          case "entry":
-            return randomizedQuestions.entry
-          case "path":
-            if (previousState.selectedPath === "fast-paced") return randomizedQuestions.fastPaced
-            if (previousState.selectedPath === "structure") return randomizedQuestions.structure
-            if (previousState.selectedPath === "relationship") return randomizedQuestions.relationship
-            return []
-          case "blend":
-            return randomizedQuestions.blend
-          case "confirmation":
-            return randomizedQuestions.confirmation
-          default:
-            return []
+        if (!previousState.selectedPath) {
+          return randomizedQuestions.entry
         }
+        if (previousState.selectedPath === "fast-paced") return randomizedQuestions.fastPaced
+        if (previousState.selectedPath === "structure") return randomizedQuestions.structure
+        if (previousState.selectedPath === "relationship") return randomizedQuestions.relationship
+        return []
       } else {
-        switch (previousState.step) {
-          case "entry":
-            return entryQuestions
-          case "path":
-            return pathQuestions[previousState.selectedPath as keyof typeof pathQuestions] || []
-          case "blend":
-            return blendQuestions
-          case "confirmation":
-            return confirmationQuestions
-          default:
-            return []
+        if (!previousState.selectedPath) {
+          return entryQuestions
         }
+        return pathQuestions[previousState.selectedPath as keyof typeof pathQuestions] || []
       }
     })()
 
@@ -827,10 +897,7 @@ export default function QuickQuiz() {
   }
 
   const updateQuizResultsInDatabase = async (quizResult: QuizResult) => {
-    // Get or create user data
-    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
-    
-    if (!currentUser) {
+    if (!userData) {
       console.error("No user data found for quiz results update")
       return
     }
@@ -841,41 +908,42 @@ export default function QuickQuiz() {
       influenceStyle += `-${quizResult.secondary.charAt(0).toUpperCase() + quizResult.secondary.slice(1)}`
     }
 
-    // Update database with quiz results instantly
-    const updatedDBUser = {
-      ...currentUser,
+    // Update user data with quiz results
+    const updatedUser = {
+      ...userData,
       quizCompleted: true,
+      primaryInfluenceStyle: quizResult.primary.charAt(0).toUpperCase() + quizResult.primary.slice(1),
+      secondaryInfluenceStyle: quizResult.secondary ? quizResult.secondary.charAt(0).toUpperCase() + quizResult.secondary.slice(1) : null,
       influenceStyle: influenceStyle,
       quizResult: quizResult,
       quizCompletedAt: new Date().toISOString(),
     }
-    console.log("Updating user quiz results in database:", updatedDBUser)
 
-    const response = await fetch("/api/update-user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedDBUser),
-    })
-    
-    if (response.ok) {
-      console.log("Quiz results updated successfully in database")
-    } else {
-      console.error("Failed to update quiz results in database")
+    // Save to localStorage immediately
+    localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+    console.log("Quiz results saved to localStorage:", updatedUser)
+
+    // Also save to the local database utility
+    try {
+      const { localDB } = await import("@/lib/utils/local-storage-db")
+      if (updatedUser.id) {
+        await localDB.users.update(updatedUser.id, {
+          quizCompleted: true,
+          influenceStyle: updatedUser.influenceStyle,
+        })
+        console.log("Quiz results updated in localDB successfully")
+      }
+    } catch (error) {
+      console.warn("LocalDB update failed:", error)
     }
+
+    console.log("Quiz results saved successfully using localStorage simulation")
   }
+
+
 
   const saveUserData = async () => {
     if (!result) return
-
-    // Get or create user data
-    let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
-    
-    if (!currentUser) {
-      router.push("/")
-      return
-    }
 
     // Create influence style string
     let influenceStyle = result.primary.charAt(0).toUpperCase() + result.primary.slice(1)
@@ -883,9 +951,9 @@ export default function QuickQuiz() {
       influenceStyle += `-${result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1)}`
     }
 
-    // Update user data with quiz results for localStorage
+    // Update user data with quiz results
     const updatedUser = {
-      ...currentUser,
+      ...userData,
       quizCompleted: true,
       primaryInfluenceStyle: result.primary.charAt(0).toUpperCase() + result.primary.slice(1),
       secondaryInfluenceStyle: result.secondary ? result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1) : null,
@@ -894,8 +962,25 @@ export default function QuickQuiz() {
       quizCompletedAt: new Date().toISOString(),
     }
 
-    // Save to localStorage
+    // Save to localStorage immediately
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+    console.log("User data saved to localStorage:", updatedUser)
+
+    // Also save to the local database utility
+    try {
+      const { localDB } = await import("@/lib/utils/local-storage-db")
+      if (updatedUser.id) {
+        await localDB.users.update(updatedUser.id, {
+          quizCompleted: true,
+          influenceStyle: updatedUser.influenceStyle,
+        })
+        console.log("User data updated in localDB successfully")
+      }
+    } catch (error) {
+      console.warn("LocalDB update failed:", error)
+    }
+
+    console.log("User data saved successfully using localStorage simulation")
 
     // Navigate to influence-demo
     router.push("/influence-demo")
@@ -911,9 +996,7 @@ export default function QuickQuiz() {
 
     if (result.isBlend && result.secondary) {
       const blendKey = `${result.primary}-${result.secondary}` as keyof typeof blendDescriptions
-      const blendDescription =
-        blendDescriptions[blendKey] ||
-        blendDescriptions[`${result.secondary}-${result.primary}` as keyof typeof blendDescriptions]
+      const blendInfo = blendDescriptions[blendKey] || blendDescriptions[`${result.secondary}-${result.primary}` as keyof typeof blendDescriptions]
 
       return (
         <div className="text-center space-y-6">
@@ -932,7 +1015,7 @@ export default function QuickQuiz() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               {primaryStyle.name}–{secondaryStyle?.name} Blend
             </h2>
-            <p className="text-lg text-gray-700 mb-4">{blendDescription}</p>
+            <p className="text-lg text-gray-700 mb-4">{blendInfo?.description || "You have a unique blend of influence styles."}</p>
           </div>
         </div>
       )
@@ -953,13 +1036,17 @@ export default function QuickQuiz() {
     }
   }
 
-  // Show loading state while randomizing questions
-  if (!randomizedQuestions) {
+
+
+  // Show loading state while user data is loading or questions are being randomized
+  if (!userData || !randomizedQuestions) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#92278F] mx-auto mb-4"></div>
-          <p className="text-gray-600">Preparing your personalized quiz...</p>
+          <p className="text-gray-600">
+            {!userData ? "Loading your information..." : "Preparing your personalized quiz..."}
+          </p>
         </div>
       </div>
     )
@@ -993,14 +1080,18 @@ export default function QuickQuiz() {
               <CardTitle className="text-2xl font-bold text-gray-900 text-center">What This Means for You</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">🎯 Your Communication Strengths</h3>
-                <p className="text-blue-800">
-                  {result?.isBlend && result.secondary
-                    ? `As a ${styleDescriptions[result.primary as keyof typeof styleDescriptions].name}–${styleDescriptions[result.secondary as keyof typeof styleDescriptions].name} blend, you have the unique ability to adapt your approach based on the situation.`
-                    : `Your ${styleDescriptions[result?.primary as keyof typeof styleDescriptions]?.name} style means you naturally excel at ${styleDescriptions[result?.primary as keyof typeof styleDescriptions]?.description.toLowerCase()}`}
-                </p>
-              </div>
+                             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                 <h3 className="font-semibold text-blue-900 mb-2">🎯 Your Communication Strengths</h3>
+                 <p className="text-blue-800">
+                   {result?.isBlend && result.secondary
+                     ? (() => {
+                         const blendKey = `${result.primary}-${result.secondary}` as keyof typeof blendDescriptions
+                         const blendInfo = blendDescriptions[blendKey] || blendDescriptions[`${result.secondary}-${result.primary}` as keyof typeof blendDescriptions]
+                         return blendInfo?.strengths || "You have a unique blend of influence styles."
+                       })()
+                     : styleDescriptions[result?.primary as keyof typeof styleDescriptions]?.strengths || "You have strong communication abilities."}
+                 </p>
+               </div>
 
               <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
                 <h3 className="font-semibold text-green-900 mb-2">🚀 How The Influence Engine™ Helps</h3>
@@ -1065,10 +1156,8 @@ export default function QuickQuiz() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
                 <div className="text-sm text-gray-600">
-               {currentStep === "entry" && `Question ${currentQuestionIndex + 1} of 2`}
-               {currentStep === "path" && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
-               {currentStep === "blend" && `Question ${currentQuestionIndex + 1} of 2`}
-               {currentStep === "confirmation" && `Question ${currentQuestionIndex + 1} of 3`}
+               {!selectedPath && `Question ${currentQuestionIndex + 1} of 2`}
+               {selectedPath && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
              </div>
             <div className="text-sm text-gray-600">{progress}% Complete</div>
           </div>
@@ -1132,13 +1221,9 @@ export default function QuickQuiz() {
             className="bg-[#92278F] hover:bg-[#7a1f78] text-white flex items-center space-x-2 px-8 py-3 text-lg font-semibold"
           >
             <span>
-              {currentStep === "path" && currentQuestionIndex === 2
+              {selectedPath && currentQuestionIndex === 2
                 ? "Get My Results"
-                : currentStep === "blend" && currentQuestionIndex === 1
-                  ? "Continue"
-                  : currentStep === "confirmation" && currentQuestionIndex === 2
-                    ? "Get My Results"
-                    : "Next"}
+                : "Next"}
             </span>
             <ArrowRight className="w-4 h-4" />
           </Button>
