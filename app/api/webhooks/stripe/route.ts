@@ -52,6 +52,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     const userEmail = session.metadata?.userEmail;
     const cart = session.metadata?.cart;
 
+    console.log("Webhook metadata:", {
+      userId,
+      userEmail,
+      cart,
+      allMetadata: session.metadata
+    });
+
     if (!userId || !userEmail) {
       console.error("Missing user information in session metadata");
       return;
@@ -62,12 +69,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     console.log("Processing payment for user ID:", numericUserId, "Type:", typeof numericUserId);
 
     // Update user payment status
+    const updateData = {
+      paid_at: new Date().toISOString(),
+      paid_for: cart || '',
+    };
+    
+    console.log("Updating user payment status:", {
+      userId: numericUserId,
+      updateData
+    });
+
     const { error: updateError } = await supabase
       .from('influence_users')
-      .update({
-        paid_at: new Date().toISOString(),
-        paid_for: cart || '',
-      })
+      .update(updateData)
       .eq('id', numericUserId);
 
     if (updateError) {

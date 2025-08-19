@@ -90,8 +90,7 @@ export default function CartPage() {
       id: userData.id,
       ndaSigned: cartState.agreedToTerms,
       ndaDigitalSignature: cartState.signature,
-      paidFor: cartItems.join(','), // Store as comma-separated string
-      cart: cartItems, // Keep for API processing
+      cart: cartItems, // Keep cart items for checkout processing
     }
 
     // Save to localStorage for immediate use

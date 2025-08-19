@@ -36,8 +36,8 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
-             // Parse cart items from paid_for field or use cart array
-       const cartItems = userData.paid_for ? userData.paid_for.split(',') : userData.cart || []
+             // Use cart array from user data
+       const cartItems = userData.cart || []
        
        // Create checkout session
        const response = await fetch("/api/create-checkout-session", {
@@ -81,11 +81,11 @@ export default function CheckoutPage() {
     }
   }
 
-  const calculateTotal = () => {
-    if (!userData) return 0
-    
-    // Parse cart items from paid_for field or use cart array
-    const cartItems = userData.paid_for ? userData.paid_for.split(',') : userData.cart || []
+     const calculateTotal = () => {
+     if (!userData) return 0
+     
+     // Use cart array from user data
+     const cartItems = userData.cart || []
     
     return cartItems.reduce((total: number, item: string) => {
       const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
@@ -153,8 +153,8 @@ export default function CheckoutPage() {
               <CardHeader>
                 <CardTitle className="text-xl">Order Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                                 {(userData.paid_for ? userData.paid_for.split(',') : userData.cart || []).map((item: string) => {
+                             <CardContent className="space-y-4">
+                                  {(userData.cart || []).map((item: string) => {
                    const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
                    return (
                      <div key={item} className="flex justify-between items-center">

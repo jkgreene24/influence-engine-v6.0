@@ -8,17 +8,16 @@ export async function POST(request: Request) {
     
     const body = await request.json();
     
-    console.log("Request body:", { 
-      id: body.id,
-      email: body.email, 
-      ndaSigned: body.ndaSigned,
-      hasSignatureData: !!body.signatureData,
-      quizCompleted: body.quizCompleted,
-      influenceStyle: body.influenceStyle,
-      demoWatched: body.demoWatched,
-      paidFor: body.paidFor,
-      ndaDigitalSignature: body.ndaDigitalSignature,
-    });
+         console.log("Request body:", { 
+       id: body.id,
+       email: body.email, 
+       ndaSigned: body.ndaSigned,
+       hasSignatureData: !!body.signatureData,
+       quizCompleted: body.quizCompleted,
+       influenceStyle: body.influenceStyle,
+       demoWatched: body.demoWatched,
+       ndaDigitalSignature: body.ndaDigitalSignature,
+     });
     
     // Create Supabase client
     console.log("Creating Supabase client...");
@@ -31,23 +30,20 @@ export async function POST(request: Request) {
     
     // Prepare updates for Supabase
     const updates: any = {};
-    if (body.ndaSigned !== undefined) updates.nda_signed = body.ndaSigned;
-    if (body.signatureData !== undefined) updates.signature_url = body.signatureData;
-    if (body.ndaDigitalSignature !== undefined) updates.nda_digital_signature = body.ndaDigitalSignature;
-    if (body.influenceStyle !== undefined) updates.influence_style = body.influenceStyle;
-    if (body.quizCompleted !== undefined) updates.quiz_completed = body.quizCompleted;
-    if (body.demoWatched !== undefined) updates.demo_watched = body.demoWatched;
-    if (body.paidAt !== undefined) updates.paid_at = body.paidAt;
-    if (body.paidFor !== undefined) updates.paid_for = body.paidFor;
-    if (body.cart !== undefined) updates.paid_for = body.cart.join(','); // Store cart as comma-separated string
+         if (body.ndaSigned !== undefined) updates.nda_signed = body.ndaSigned;
+     if (body.signatureData !== undefined) updates.signature_url = body.signatureData;
+     if (body.ndaDigitalSignature !== undefined) updates.nda_digital_signature = body.ndaDigitalSignature;
+     if (body.influenceStyle !== undefined) updates.influence_style = body.influenceStyle;
+     if (body.quizCompleted !== undefined) updates.quiz_completed = body.quizCompleted;
+     if (body.demoWatched !== undefined) updates.demo_watched = body.demoWatched;
+     // Note: paid_at and paid_for are only updated by Stripe webhook after successful payment
     
     console.log("Updates to apply:", updates);
     console.log("User ID to update:", body.id);
     console.log("User ID type:", typeof body.id);
-    console.log("Database field mappings:");
-    console.log("- ndaSigned -> nda_signed:", body.ndaSigned);
-    console.log("- ndaDigitalSignature -> nda_digital_signature:", body.ndaDigitalSignature);
-    console.log("- paidFor -> paid_for:", body.paidFor);
+         console.log("Database field mappings:");
+     console.log("- ndaSigned -> nda_signed:", body.ndaSigned);
+     console.log("- ndaDigitalSignature -> nda_digital_signature:", body.ndaDigitalSignature);
     
     // Convert ID to number if it's a string
     const userId = typeof body.id === 'string' ? parseInt(body.id, 10) : body.id;
