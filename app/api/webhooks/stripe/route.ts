@@ -57,6 +57,10 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       return;
     }
 
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    console.log("Processing payment for user ID:", numericUserId, "Type:", typeof numericUserId);
+
     // Update user payment status
     const { error: updateError } = await supabase
       .from('influence_users')
@@ -64,7 +68,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         paid_at: new Date().toISOString(),
         paid_for: cart || '',
       })
-      .eq('id', userId);
+      .eq('id', numericUserId);
 
     if (updateError) {
       console.error("Error updating user payment status:", updateError);

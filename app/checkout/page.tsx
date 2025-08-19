@@ -48,14 +48,14 @@ export default function CheckoutPage() {
          body: JSON.stringify({
            userEmail: userData.email,
            userName: `${userData.first_name} ${userData.last_name}`,
-           influenceStyle: userData.influence_style,
+           influenceStyle: userData.influenceStyle,
            cart: cartItems,
            metadata: {
              userId: userData.id,
              userEmail: userData.email,
              userName: `${userData.first_name} ${userData.last_name}`,
-             influenceStyle: userData.influence_style,
-             ndaDigitalSignature: userData.nda_digital_signature,
+             influenceStyle: userData.influenceStyle,
+             ndaDigitalSignature: userData.ndaDigitalSignature,
            }
          })
        })

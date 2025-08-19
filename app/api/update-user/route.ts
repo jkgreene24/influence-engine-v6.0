@@ -16,6 +16,8 @@ export async function POST(request: Request) {
       quizCompleted: body.quizCompleted,
       influenceStyle: body.influenceStyle,
       demoWatched: body.demoWatched,
+      paidFor: body.paidFor,
+      ndaDigitalSignature: body.ndaDigitalSignature,
     });
     
     // Create Supabase client
@@ -42,6 +44,10 @@ export async function POST(request: Request) {
     console.log("Updates to apply:", updates);
     console.log("User ID to update:", body.id);
     console.log("User ID type:", typeof body.id);
+    console.log("Database field mappings:");
+    console.log("- ndaSigned -> nda_signed:", body.ndaSigned);
+    console.log("- ndaDigitalSignature -> nda_digital_signature:", body.ndaDigitalSignature);
+    console.log("- paidFor -> paid_for:", body.paidFor);
     
     // Convert ID to number if it's a string
     const userId = typeof body.id === 'string' ? parseInt(body.id, 10) : body.id;
