@@ -82,24 +82,27 @@ export default function CartPage() {
   const handleContinue = async () => {
     if (!cartState.agreedToTerms || !cartState.signature.trim() || cartState.selectedItems.length === 0) return
 
+    // Prepare cart items for database storage
+    const cartItems = cartState.selectedItems.includes('Bundle') ? ['Bundle'] : cartState.selectedItems
+
     // Update user data with cart information
     const updatedUser = {
-      ...userData,
-      cart: cartState.selectedItems.includes('Bundle') ? ['Bundle'] : cartState.selectedItems,
-      wantsBook: cartState.selectedItems.includes('Book') || cartState.selectedItems.includes('Bundle'),
-      wantsToolkit: cartState.selectedItems.includes('Toolkit') || cartState.selectedItems.includes('Bundle'),
-      wantsIE: cartState.selectedItems.includes('IE_Annual') || cartState.selectedItems.includes('Bundle'),
-      wantsBundle: cartState.selectedItems.includes('Bundle'),
-      declinedBook: !cartState.selectedItems.includes('Book') && !cartState.selectedItems.includes('Bundle'),
-      declinedToolkit: !cartState.selectedItems.includes('Toolkit') && !cartState.selectedItems.includes('Bundle'),
-      declinedIE: !cartState.selectedItems.includes('IE_Annual') && !cartState.selectedItems.includes('Bundle'),
-      agreedToTerms: cartState.agreedToTerms,
-      signature: cartState.signature,
-      cartCompletedAt: new Date().toISOString()
+      id: userData.id,
+      ndaSigned: cartState.agreedToTerms,
+      ndaDigitalSignature: cartState.signature,
+      paidFor: cartItems.join(','), // Store as comma-separated string
+      cart: cartItems, // Keep for API processing
     }
 
-    // Save to localStorage
-    localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
+    // Save to localStorage for immediate use
+    const localStorageUser = {
+      ...userData,
+      cart: cartItems,
+      ndaSigned: cartState.agreedToTerms,
+      ndaDigitalSignature: cartState.signature,
+      cartCompletedAt: new Date().toISOString()
+    }
+    localStorage.setItem("current_influence_user", JSON.stringify(localStorageUser))
 
     // Update database
     try {

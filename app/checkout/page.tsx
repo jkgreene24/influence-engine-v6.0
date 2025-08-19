@@ -36,38 +36,29 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
-      // Create checkout session
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: userData.id,
-          cart: userData.cart,
-          userData: {
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            email: userData.email,
-            phone: userData.phone,
-            company: userData.company,
-            role: userData.role,
-            source: userData.source,
-            reiaName: userData.reiaName,
-            socialPlatform: userData.socialPlatform,
-            referrerName: userData.referrerName,
-            wordOfMouth: userData.wordOfMouth,
-            otherSource: userData.otherSource,
-            utmSource: userData.utmSource,
-            utmMedium: userData.utmMedium,
-            utmCampaign: userData.utmCampaign,
-            srcBook: userData.srcBook,
-            influenceStyle: userData.influenceStyle,
-            agreedToTerms: userData.agreedToTerms,
-            signature: userData.signature
-          }
-        })
-      })
+             // Parse cart items from paid_for field or use cart array
+       const cartItems = userData.paid_for ? userData.paid_for.split(',') : userData.cart || []
+       
+       // Create checkout session
+       const response = await fetch("/api/create-checkout-session", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+         },
+         body: JSON.stringify({
+           userEmail: userData.email,
+           userName: `${userData.first_name} ${userData.last_name}`,
+           influenceStyle: userData.influence_style,
+           cart: cartItems,
+           metadata: {
+             userId: userData.id,
+             userEmail: userData.email,
+             userName: `${userData.first_name} ${userData.last_name}`,
+             influenceStyle: userData.influence_style,
+             ndaDigitalSignature: userData.nda_digital_signature,
+           }
+         })
+       })
 
              if (response.ok) {
          const responseData = await response.json()
@@ -91,8 +82,12 @@ export default function CheckoutPage() {
   }
 
   const calculateTotal = () => {
-    if (!userData?.cart) return 0
-    return userData.cart.reduce((total: number, item: string) => {
+    if (!userData) return 0
+    
+    // Parse cart items from paid_for field or use cart array
+    const cartItems = userData.paid_for ? userData.paid_for.split(',') : userData.cart || []
+    
+    return cartItems.reduce((total: number, item: string) => {
       const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
       return total + (product?.price || 0)
     }, 0)
@@ -159,18 +154,18 @@ export default function CheckoutPage() {
                 <CardTitle className="text-xl">Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {userData.cart?.map((item: string) => {
-                  const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
-                  return (
-                    <div key={item} className="flex justify-between items-center">
-                      <div>
-                        <span className="font-semibold text-gray-900">{product?.name}</span>
-                        <p className="text-sm text-gray-600">{product?.description}</p>
-                      </div>
-                      <span className="font-semibold text-lg">${product?.price}</span>
-                    </div>
-                  )
-                })}
+                                 {(userData.paid_for ? userData.paid_for.split(',') : userData.cart || []).map((item: string) => {
+                   const product = getProduct(item as "Book" | "Toolkit" | "IE_Annual" | "Bundle")
+                   return (
+                     <div key={item} className="flex justify-between items-center">
+                       <div>
+                         <span className="font-semibold text-gray-900">{product?.name}</span>
+                         <p className="text-sm text-gray-600">{product?.description}</p>
+                       </div>
+                       <span className="font-semibold text-lg">${product?.price}</span>
+                     </div>
+                   )
+                 })}
                 
 
                 
@@ -189,26 +184,26 @@ export default function CheckoutPage() {
                 <CardTitle className="text-lg">Customer Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <span className="text-sm text-gray-600">Name</span>
-                  <p className="font-semibold">{userData.firstName} {userData.lastName}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Email</span>
-                  <p className="font-semibold">{userData.email}</p>
-                </div>
-                {userData.phone && (
-                  <div>
-                    <span className="text-sm text-gray-600">Phone</span>
-                    <p className="font-semibold">{userData.phone}</p>
-                  </div>
-                )}
-                {userData.company && (
-                  <div>
-                    <span className="text-sm text-gray-600">Company</span>
-                    <p className="font-semibold">{userData.company}</p>
-                  </div>
-                )}
+                                 <div>
+                   <span className="text-sm text-gray-600">Name</span>
+                   <p className="font-semibold">{userData.first_name} {userData.last_name}</p>
+                 </div>
+                 <div>
+                   <span className="text-sm text-gray-600">Email</span>
+                   <p className="font-semibold">{userData.email}</p>
+                 </div>
+                 {userData.phone && (
+                   <div>
+                     <span className="text-sm text-gray-600">Phone</span>
+                     <p className="font-semibold">{userData.phone}</p>
+                   </div>
+                 )}
+                 {userData.company && (
+                   <div>
+                     <span className="text-sm text-gray-600">Company</span>
+                     <p className="font-semibold">{userData.company}</p>
+                   </div>
+                 )}
               </CardContent>
             </Card>
           </div>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { localDB } from "@/lib/utils/local-storage-db";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
@@ -14,18 +14,35 @@ export async function POST(request: Request) {
       hasSignatureData: !!body.signatureData,
     });
     
-    // Prepare updates for localStorage
+    // Create Supabase client
+    const supabase = await createClient();
+    
+    // Prepare updates for Supabase
     const updates: any = {};
-    if (body.ndaSigned !== undefined) updates.ndaSigned = body.ndaSigned;
-    if (body.signatureData !== undefined) updates.signatureData = body.signatureData;
-    if (body.influenceStyle !== undefined) updates.influenceStyle = body.influenceStyle;
-    if (body.quizCompleted !== undefined) updates.quizCompleted = body.quizCompleted;
-    if (body.demoWatched !== undefined) updates.demoWatched = body.demoWatched;
-    if (body.paidAt !== undefined) updates.paidAt = body.paidAt;
+    if (body.ndaSigned !== undefined) updates.nda_signed = body.ndaSigned;
+    if (body.signatureData !== undefined) updates.signature_url = body.signatureData;
+    if (body.ndaDigitalSignature !== undefined) updates.nda_digital_signature = body.ndaDigitalSignature;
+    if (body.influenceStyle !== undefined) updates.influence_style = body.influenceStyle;
+    if (body.quizCompleted !== undefined) updates.quiz_completed = body.quizCompleted;
+    if (body.demoWatched !== undefined) updates.demo_watched = body.demoWatched;
+    if (body.paidAt !== undefined) updates.paid_at = body.paidAt;
+    if (body.paidFor !== undefined) updates.paid_for = body.paidFor;
+    if (body.cart !== undefined) updates.paid_for = body.cart.join(','); // Store cart as comma-separated string
     
     console.log("Updates to apply:", updates);
     
-    const updatedUser = await localDB.users.update(body.id, updates);
+    // Update user in Supabase
+    const { data: updatedUser, error } = await supabase
+      .from('influence_users')
+      .update(updates)
+      .eq('id', body.id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    }
     
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
