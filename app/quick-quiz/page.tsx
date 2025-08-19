@@ -663,6 +663,8 @@ export default function QuickQuiz() {
   }
 
   const calculateResult = (allAnswers: Record<string, string>) => {
+    console.log("🧮 calculateResult called with answers:", allAnswers)
+    
     const styleScores: Record<string, number> = {
       catalyst: 0,
       connector: 0,
@@ -673,6 +675,7 @@ export default function QuickQuiz() {
 
     // Count style occurrences from all answers
     Object.entries(allAnswers).forEach(([questionId, answerId]) => {
+      console.log(`📝 Processing question ${questionId} with answer ${answerId}`)
       let question: QuizQuestion | undefined
 
       // Find the question using randomized questions if available
@@ -715,24 +718,38 @@ export default function QuickQuiz() {
         }
       }
 
+      console.log(`🔍 Found question:`, question)
+
       if (question) {
         const answer = question.answers.find((a) => a.id === answerId)
+        console.log(`🎯 Found answer:`, answer)
         if (answer && !answer.styles.includes("mixed")) {
+          console.log(`✅ Adding styles:`, answer.styles)
           answer.styles.forEach((style) => {
             if (styleScores[style] !== undefined) {
               styleScores[style]++
+              console.log(`📊 Updated ${style} score to:`, styleScores[style])
             }
           })
+        } else {
+          console.log(`❌ Skipping answer - mixed styles or not found`)
         }
+      } else {
+        console.log(`❌ Question not found for ID: ${questionId}`)
       }
     })
+
+    console.log("📊 Final style scores:", styleScores)
 
     // Find top two styles
     const sortedStyles = Object.entries(styleScores)
       .sort(([, a], [, b]) => b - a)
       .filter(([, score]) => score > 0)
 
+    console.log("🏆 Sorted styles:", sortedStyles)
+
     if (sortedStyles.length === 0) {
+      console.log("⚠️ No styles found, defaulting to catalyst")
       return { primary: "catalyst", isBlend: false }
     }
 
@@ -742,15 +759,28 @@ export default function QuickQuiz() {
     // Determine if it's a blend (secondary score is close to primary)
     const isBlend = secondaryStyle && secondaryScore >= primaryScore * 0.6
 
-    return {
+    const result = {
       primary: primaryStyle,
       secondary: isBlend ? secondaryStyle : undefined,
       isBlend: !!isBlend,
     }
+    
+    console.log("🎯 Final result:", result)
+    return result
   }
 
   const handleNext = () => {
-    if (!selectedAnswer) return
+    console.log("🚀 handleNext called")
+    console.log("Selected answer:", selectedAnswer)
+    console.log("Current step:", currentStep)
+    console.log("Current question index:", currentQuestionIndex)
+    console.log("Selected path:", selectedPath)
+    console.log("Needs blend clarity:", needsBlendClarity)
+    
+    if (!selectedAnswer) {
+      console.log("❌ No selected answer, returning")
+      return
+    }
 
     // Save current state before moving forward
     saveCurrentState()
@@ -759,47 +789,13 @@ export default function QuickQuiz() {
       ...answers,
       [currentQuestion.id]: selectedAnswer,
     }
+    console.log("📝 Updated answers:", newAnswers)
     setAnswers(newAnswers)
 
     if (currentStep === "quiz") {
-      if (!selectedPath) {
-        // Entry questions
-        if (currentQuestionIndex === 0) {
-          // First entry question - determine initial path
-          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
-          if (answer && "route" in answer && answer.route) {
-            const route = answer.route as string
-            if (route === "blend") {
-              setNeedsBlendClarity(true)
-              setCurrentQuestionIndex(0)
-              setSelectedAnswer("")
-            } else if (route === "fast-paced-alt") {
-              setNeedsAlternative(true)
-              setCurrentQuestionIndex(0)
-              setSelectedAnswer("")
-            } else {
-              setSelectedPath(route)
-              setCurrentQuestionIndex(1)
-              setSelectedAnswer("")
-            }
-          }
-        } else {
-          // Second entry question - confirm path and move to path questions
-          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
-          if (answer && "route" in answer && answer.route) {
-            const route = answer.route as string
-            if (route === "blend") {
-              setNeedsBlendClarity(true)
-              setCurrentQuestionIndex(0)
-              setSelectedAnswer("")
-            } else {
-              setSelectedPath(route)
-              setCurrentQuestionIndex(0)
-              setSelectedAnswer("")
-            }
-          }
-        }
-      } else if (needsAlternative) {
+      console.log("🎯 In quiz step")
+      if (needsAlternative) {
+        console.log("🔄 In alternative questions")
         // Alternative questions for "none of these feel right"
         if (currentQuestionIndex < alternativeQuestions.length - 1) {
           setCurrentQuestionIndex(currentQuestionIndex + 1)
@@ -812,16 +808,64 @@ export default function QuickQuiz() {
           setSelectedAnswer("")
         }
       } else if (needsBlendClarity) {
-        // Blend clarity questions
-        if (currentQuestionIndex < blendClarityQuestions.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1)
-          setSelectedAnswer("")
+        console.log("🔄 In blend clarity questions")
+        // Blend clarity questions - these determine the final result
+        console.log("🔍 Blend clarity logic triggered")
+        console.log("Current question index:", currentQuestionIndex)
+        console.log("Selected answer:", selectedAnswer)
+        console.log("Current question:", currentQuestion)
+        console.log("All answers so far:", newAnswers)
+        
+        if (currentQuestionIndex === 0) {
+          // On first blend clarity question
+          const currentAnswer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
+          console.log("Current answer object:", currentAnswer)
+          
+          if (currentAnswer && "followUp" in currentAnswer && currentAnswer.followUp) {
+            // If answer has follow-up, go to follow-up question
+            console.log("Answer has follow-up, going to:", currentAnswer.followUp)
+            const followUpQuestionIndex = blendClarityQuestions.findIndex(q => q.id === currentAnswer.followUp)
+            if (followUpQuestionIndex !== -1) {
+              setCurrentQuestionIndex(followUpQuestionIndex)
+              setSelectedAnswer("")
+            } else {
+              // If follow-up not found, calculate result
+              console.log("Follow-up not found, calculating result")
+              const finalResult = calculateResult(newAnswers)
+              console.log("Final result:", finalResult)
+              console.log("🔄 Setting result state...")
+              setResult(finalResult)
+              console.log("🔄 Setting current step to result...")
+              setCurrentStep("result")
+              console.log("🔄 Updating database...")
+              updateQuizResultsInDatabase(finalResult)
+              console.log("✅ All state updates completed")
+            }
+          } else {
+            // If no follow-up, calculate result immediately
+            console.log("No follow-up, calculating result immediately")
+            const finalResult = calculateResult(newAnswers)
+            console.log("Final result:", finalResult)
+            console.log("🔄 Setting result state...")
+            setResult(finalResult)
+            console.log("🔄 Setting current step to result...")
+            setCurrentStep("result")
+            console.log("🔄 Updating database...")
+            updateQuizResultsInDatabase(finalResult)
+            console.log("✅ All state updates completed")
+          }
         } else {
-          // Move to pressure questions
-          setNeedsPressure(true)
-          setNeedsBlendClarity(false)
-          setCurrentQuestionIndex(0)
-          setSelectedAnswer("")
+          // On second blend clarity question (follow-up), calculate result
+          console.log("On follow-up question, calculating result")
+          const finalResult = calculateResult(newAnswers)
+          console.log("Final result:", finalResult)
+          console.log("🔄 Setting result state...")
+          setResult(finalResult)
+          console.log("🔄 Setting current step to result...")
+          setCurrentStep("result")
+          console.log("🔄 Updating database...")
+          updateQuizResultsInDatabase(finalResult)
+          console.log("✅ All state updates completed")
         }
       } else if (needsPressure) {
         // Pressure questions
