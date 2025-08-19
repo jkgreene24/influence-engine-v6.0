@@ -166,7 +166,7 @@ export default function ContactPage() {
         // Get the Supabase-generated ID
         const newUserWithId = {
           ...userData,
-          id: result.data?.[0]?.id || Date.now().toString()
+          id: result.data?.id || Date.now().toString()
         }
         
         // Store only the current user in localStorage

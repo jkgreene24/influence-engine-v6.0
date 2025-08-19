@@ -83,20 +83,27 @@ export default function InfluenceDemoPage() {
     console.log("Updated user data:", updatedUser)
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
 
-    // Also save to the local database utility
+    // Update database with demo watched status
     try {
-      const { localDB } = await import("@/lib/utils/local-storage-db")
-      if (updatedUser.id) {
-        await localDB.users.update(updatedUser.id, {
+      const response = await fetch("/api/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: updatedUser.id,
           demoWatched: true,
         })
-        console.log("Demo watched status updated in localDB successfully")
+      })
+
+      if (response.ok) {
+        console.log("Demo watched status updated in database successfully")
+      } else {
+        console.error("Failed to update demo watched status in database")
       }
     } catch (error) {
-      console.warn("LocalDB update failed:", error)
+      console.error("Error updating demo watched status in database:", error)
     }
 
-    console.log("Demo watched status saved successfully using localStorage simulation")
+    console.log("Demo watched status saved successfully")
     setUser(updatedUser)
   }
 

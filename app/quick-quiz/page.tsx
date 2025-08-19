@@ -1087,21 +1087,33 @@ export default function QuickQuiz() {
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
     console.log("Quiz results saved to localStorage:", updatedUser)
 
-    // Also save to the local database utility
+    // Update database with quiz results
+    const updateData = {
+      id: updatedUser.id,
+      quizCompleted: true,
+      influenceStyle: updatedUser.influenceStyle,
+    }
+    console.log("Sending update data:", updateData)
+    
     try {
-      const { localDB } = await import("@/lib/utils/local-storage-db")
-      if (updatedUser.id) {
-        await localDB.users.update(updatedUser.id, {
-          quizCompleted: true,
-          influenceStyle: updatedUser.influenceStyle,
-        })
-        console.log("Quiz results updated in localDB successfully")
+      const response = await fetch("/api/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData)
+      })
+
+      if (response.ok) {
+        console.log("Quiz results updated in database successfully")
+      } else {
+        console.error("Failed to update quiz results in database")
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
       }
     } catch (error) {
-      console.warn("LocalDB update failed:", error)
+      console.error("Error updating quiz results in database:", error)
     }
 
-    console.log("Quiz results saved successfully using localStorage simulation")
+    console.log("Quiz results saved successfully")
   }
 
 
@@ -1130,21 +1142,28 @@ export default function QuickQuiz() {
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser))
     console.log("User data saved to localStorage:", updatedUser)
 
-    // Also save to the local database utility
+    // Update database with quiz results
     try {
-      const { localDB } = await import("@/lib/utils/local-storage-db")
-      if (updatedUser.id) {
-        await localDB.users.update(updatedUser.id, {
+      const response = await fetch("/api/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: updatedUser.id,
           quizCompleted: true,
           influenceStyle: updatedUser.influenceStyle,
         })
-        console.log("User data updated in localDB successfully")
+      })
+
+      if (response.ok) {
+        console.log("Quiz results updated in database successfully")
+      } else {
+        console.error("Failed to update quiz results in database")
       }
     } catch (error) {
-      console.warn("LocalDB update failed:", error)
+      console.error("Error updating quiz results in database:", error)
     }
 
-    console.log("User data saved successfully using localStorage simulation")
+    console.log("User data saved successfully")
 
     // Navigate to influence-demo
     router.push("/influence-demo")
