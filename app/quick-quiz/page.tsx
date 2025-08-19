@@ -33,6 +33,9 @@ interface QuizState {
   answers: Record<string, string>
   needsBlend: boolean
   needsConfirmation: boolean
+  needsPressure: boolean
+  needsBlendClarity: boolean
+  needsAlternative: boolean
 }
 
 // Function to shuffle array
@@ -661,6 +664,9 @@ export default function QuickQuiz() {
       answers: { ...answers },
       needsBlend,
       needsConfirmation,
+      needsPressure,
+      needsBlendClarity,
+      needsAlternative,
     }
     setHistory((prev) => [...prev, state])
   }
@@ -986,10 +992,25 @@ export default function QuickQuiz() {
     setAnswers(previousState.answers)
     setNeedsBlend(previousState.needsBlend)
     setNeedsConfirmation(previousState.needsConfirmation)
+    setNeedsPressure(previousState.needsPressure)
+    setNeedsBlendClarity(previousState.needsBlendClarity)
+    setNeedsAlternative(previousState.needsAlternative)
 
     // Set the selected answer for the previous question
     const prevQuestions = (() => {
       if (randomizedQuestions) {
+        if (previousState.needsAlternative) {
+          return randomizedQuestions.alternative
+        }
+        if (previousState.needsBlendClarity) {
+          return randomizedQuestions.blendClarity
+        }
+        if (previousState.needsPressure) {
+          return randomizedQuestions.pressure
+        }
+        if (previousState.needsConfirmation) {
+          return randomizedQuestions.confirmation
+        }
         if (!previousState.selectedPath) {
           return randomizedQuestions.entry
         }
@@ -998,6 +1019,18 @@ export default function QuickQuiz() {
         if (previousState.selectedPath === "relationship") return randomizedQuestions.relationship
         return []
       } else {
+        if (previousState.needsAlternative) {
+          return alternativeQuestions
+        }
+        if (previousState.needsBlendClarity) {
+          return blendClarityQuestions
+        }
+        if (previousState.needsPressure) {
+          return pressureQuestions
+        }
+        if (previousState.needsConfirmation) {
+          return confirmationQuestions
+        }
         if (!previousState.selectedPath) {
           return entryQuestions
         }
