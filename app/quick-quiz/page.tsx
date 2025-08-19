@@ -62,7 +62,7 @@ const entryQuestions: QuizQuestion[] = [
     answers: [
       { id: "A", text: "I bring structure and steady follow-through.", styles: ["anchor", "navigator"], route: "structure" },
       { id: "B", text: "I create emotional safety and strong human connection.", styles: ["diplomat", "connector"], route: "relationship" },
-      { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "fast-paced" },
+      { id: "C", text: "I create momentum and drive action.", styles: ["catalyst", "connector"], route: "blend" },
       { id: "D", text: "Honestly? It feels like a mix of two or more of these.", styles: ["mixed"], route: "blend" },
       { id: "E", text: "None of these feel quite right — show me totally different options.", styles: ["mixed"], route: "fast-paced-alt" },
     ],
@@ -100,24 +100,6 @@ const pathQuestions = {
         { id: "C", text: "Creating emotional stability and a sense of trust", styles: ["diplomat"] },
       ],
     },
-    {
-      id: "fp2",
-      question: "When facing pressure or conflict, I usually:",
-      answers: [
-        { id: "A", text: "Get everyone communicating again", styles: ["connector"] },
-        { id: "B", text: "Push through with urgency to keep moving", styles: ["catalyst"] },
-        { id: "C", text: "Pause to check on emotional temperature", styles: ["diplomat"] },
-      ],
-    },
-    {
-      id: "fp3",
-      question: "What drives your sense of urgency the most?",
-      answers: [
-        { id: "A", text: "The fear of missing opportunity", styles: ["catalyst"] },
-        { id: "B", text: "Seeing people feel disconnected or lost", styles: ["connector"] },
-        { id: "C", text: "Wanting to make sure it's truly the right time", styles: ["anchor", "navigator"] },
-      ],
-    },
   ],
   structure: [
     {
@@ -140,24 +122,6 @@ const pathQuestions = {
         { id: "C", text: "Clarifying the vision and next steps", styles: ["navigator"] },
       ],
     },
-    {
-      id: "st2",
-      question: "What creates confidence for you in a messy situation?",
-      answers: [
-        { id: "A", text: "Having a steady, practical plan", styles: ["anchor"] },
-        { id: "B", text: "Reconnecting to the bigger vision", styles: ["navigator"] },
-        { id: "C", text: "Making sure everyone's aligned emotionally", styles: ["diplomat"] },
-      ],
-    },
-    {
-      id: "st3",
-      question: "How do you usually prevent breakdowns?",
-      answers: [
-        { id: "A", text: "By mapping out potential risks and blockers", styles: ["navigator"] },
-        { id: "B", text: "By putting the right systems in place early", styles: ["anchor"] },
-        { id: "C", text: "By keeping people talking and collaborating", styles: ["connector"] },
-      ],
-    },
   ],
   relationship: [
     {
@@ -178,24 +142,6 @@ const pathQuestions = {
         { id: "A", text: "Providing structure and calm", styles: ["anchor"] },
         { id: "B", text: "Sparking action or momentum", styles: ["catalyst"] },
         { id: "C", text: "Framing a longer-term vision", styles: ["navigator"] },
-      ],
-    },
-    {
-      id: "rel2",
-      question: "When others are tense or struggling, I naturally:",
-      answers: [
-        { id: "A", text: "Hold space and make them feel safe", styles: ["diplomat"] },
-        { id: "B", text: "Get people realigned and working together again", styles: ["connector"] },
-        { id: "C", text: "Offer a practical next step", styles: ["anchor"] },
-      ],
-    },
-    {
-      id: "rel3",
-      question: "What matters most to you when resolving issues?",
-      answers: [
-        { id: "A", text: "Emotional harmony", styles: ["diplomat"] },
-        { id: "B", text: "Shared clarity", styles: ["connector"] },
-        { id: "C", text: "Getting a clear plan and process", styles: ["anchor", "navigator"] },
       ],
     },
   ],
@@ -619,7 +565,7 @@ export default function QuickQuiz() {
     } else if (needsConfirmation) {
       progress = 80 + (progress * 0.2) // 80-100%
     } else if (selectedPath) {
-      progress = 20 + (progress * 0.6) // 20-80%
+      progress = 20 + (progress * 0.4) // 20-60% (only Q3 in path)
     }
     
     return Math.round(progress)
@@ -900,12 +846,12 @@ export default function QuickQuiz() {
           updateQuizResultsInDatabase(finalResult)
         }
       } else {
-        // Path questions
-        if (currentQuestionIndex < 2) {
+        // Path questions (Q3)
+        if (currentQuestionIndex < 1) {
           setCurrentQuestionIndex(currentQuestionIndex + 1)
           setSelectedAnswer("")
         } else {
-          // Check if we need pressure questions based on mixed answers
+          // After Q3, check if we need pressure questions based on mixed answers
           const mixedAnswers = Object.values(newAnswers).filter((answerId) => {
             const allQuestions = [...entryQuestions, ...Object.values(pathQuestions).flat() as QuizQuestion[]]
             for (const q of allQuestions) {
@@ -1231,7 +1177,7 @@ export default function QuickQuiz() {
                        <div className="flex justify-between items-center mb-4">
                <div className="text-sm text-gray-600">
                  {!selectedPath && !needsAlternative && !needsBlendClarity && !needsPressure && !needsConfirmation && `Question ${currentQuestionIndex + 1} of 2`}
-                 {selectedPath && !needsAlternative && !needsBlendClarity && !needsPressure && !needsConfirmation && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
+                 {selectedPath && !needsAlternative && !needsBlendClarity && !needsPressure && !needsConfirmation && `Question ${currentQuestionIndex + 1} of 1`}
                  {needsAlternative && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
                  {needsBlendClarity && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
                  {needsPressure && `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`}
@@ -1298,11 +1244,11 @@ export default function QuickQuiz() {
             disabled={!selectedAnswer}
             className="bg-[#92278F] hover:bg-[#7a1f78] text-white flex items-center space-x-2 px-8 py-3 text-lg font-semibold"
           >
-            <span>
-              {selectedPath && currentQuestionIndex === 2
-                ? "Get My Results"
-                : "Next"}
-            </span>
+                         <span>
+               {selectedPath && currentQuestionIndex === 1
+                 ? "Continue"
+                 : "Next"}
+             </span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
