@@ -506,10 +506,13 @@ export default function QuickQuiz() {
           if (needsConfirmation) {
             return confirmationQuestions
           }
+          if (!selectedPath) {
+            return entryQuestions
+          }
           if (selectedPath) {
             return pathQuestions[selectedPath as keyof typeof pathQuestions] || []
           }
-          return entryQuestions
+          return []
         default:
           return []
       }
@@ -892,6 +895,53 @@ export default function QuickQuiz() {
           
           // Update database with quiz results instantly when quiz is completed
           updateQuizResultsInDatabase(finalResult)
+        }
+      } else if (!selectedPath) {
+        console.log("🛣️ No selected path - entry questions")
+        // Entry questions
+        if (currentQuestionIndex === 0) {
+          // First entry question - determine initial path
+          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
+          console.log("🛣️ First entry answer:", answer)
+          if (answer && "route" in answer && answer.route) {
+            const route = answer.route as string
+            console.log("🛣️ Route determined:", route)
+            if (route === "blend") {
+              console.log("🔄 Setting needs blend clarity")
+              setNeedsBlendClarity(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else if (route === "fast-paced-alt") {
+              console.log("🔄 Setting needs alternative")
+              setNeedsAlternative(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else {
+              console.log("🛣️ Setting selected path:", route)
+              setSelectedPath(route)
+              setCurrentQuestionIndex(1)
+              setSelectedAnswer("")
+            }
+          }
+        } else {
+          // Second entry question - confirm path and move to path questions
+          const answer = currentQuestion.answers.find((a) => a.id === selectedAnswer)
+          console.log("🔍 Second entry answer:", answer)
+          if (answer && "route" in answer && answer.route) {
+            const route = answer.route as string
+            console.log("🛣️ Route determined:", route)
+            if (route === "blend") {
+              console.log("🔄 Setting needs blend clarity")
+              setNeedsBlendClarity(true)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            } else {
+              console.log("🛣️ Setting selected path:", route)
+              setSelectedPath(route)
+              setCurrentQuestionIndex(0)
+              setSelectedAnswer("")
+            }
+          }
         }
       } else {
         // Path questions (Q3)
