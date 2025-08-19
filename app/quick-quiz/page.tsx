@@ -48,7 +48,7 @@ const shuffleArray = (array: any[]): any[] => {
 // Function to randomize answer order
 const randomizeAnswers = (answers: any[]) => {
   const shuffled = shuffleArray(answers);
-  const letters = ['A', 'B', 'C', 'D', 'E'];
+  const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
   return shuffled.map((answer, index) => ({
     ...answer,
     id: letters[index]
@@ -1205,7 +1205,7 @@ export default function QuickQuiz() {
             <div className="space-y-4">
               {currentQuestion?.answers.map((answer) => (
                 <button
-                  key={answer.id}
+                  key={`${currentQuestion.id}-${answer.id}`}
                   onClick={() => handleAnswerSelect(answer.id)}
                   className={`w-full text-left p-6 rounded-xl border-2 transition-all duration-300 ${
                     selectedAnswer === answer.id
