@@ -151,7 +151,7 @@ export default function InfluenceProfile() {
   }
 
   const handleContinue = () => {
-    router.push("/influence-nda")
+    router.push("/cart")
   }
 
   if (loading) {

@@ -152,9 +152,6 @@ export default function CartPage() {
                 <p className="text-sm text-gray-600">AI-Powered Leadership Coaching</p>
               </div>
             </div>
-            <Badge variant="outline" className="text-sm">
-              Step 4 of 6
-            </Badge>
           </div>
         </div>
       </header>
