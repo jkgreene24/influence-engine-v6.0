@@ -129,17 +129,51 @@ export default function CartPage() {
 
       if (response.ok) {
         console.log("Cart data saved successfully")
-        // Navigate to checkout
-        router.push("/checkout")
       } else {
         console.error("Failed to save cart data")
-        // Still continue to checkout
-        router.push("/checkout")
       }
     } catch (error) {
       console.error("Error saving cart data:", error)
-      // Continue to checkout even if API fails
-      router.push("/checkout")
+    }
+
+    // Create Stripe checkout session directly
+    try {
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userEmail: userData.email,
+          userName: `${userData.first_name} ${userData.last_name}`,
+          influenceStyle: userData.influenceStyle,
+          cart: cartItems,
+          metadata: {
+            userId: userData.id,
+            userEmail: userData.email,
+            userName: `${userData.first_name} ${userData.last_name}`,
+            influenceStyle: userData.influenceStyle,
+            ndaDigitalSignature: cartState.signature,
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to create checkout session")
+      }
+
+      const { sessionUrl } = await response.json()
+      
+      if (!sessionUrl) {
+        throw new Error("No checkout URL received")
+      }
+
+      // Redirect directly to Stripe checkout
+      window.location.href = sessionUrl
+    } catch (error) {
+      console.error("Checkout error:", error)
+      // Fallback: show error message or redirect to checkout page
+      alert("Failed to create checkout session. Please try again.")
     }
   }
 
@@ -369,13 +403,13 @@ export default function CartPage() {
                    </>
                  )}
 
-                <Button
-                  onClick={handleContinue}
-                  disabled={!cartState.agreedToTerms || !cartState.signature.trim() || cartState.selectedItems.length === 0}
-                  className="w-full bg-[#92278F] hover:bg-[#7a1f78] text-white py-4 text-lg font-semibold"
-                >
-                  Continue to Checkout
-                </Button>
+                                 <Button
+                   onClick={handleContinue}
+                   disabled={!cartState.agreedToTerms || !cartState.signature.trim() || cartState.selectedItems.length === 0}
+                   className="w-full bg-[#92278F] hover:bg-[#7a1f78] text-white py-4 text-lg font-semibold"
+                 >
+                   Pay ${total}
+                 </Button>
 
                 <div className="text-center">
                   <Button
