@@ -91,7 +91,7 @@ export function generateSourceTags(sourceTracking: SourceTracking): string[] {
     tags.push('SRC_OTHER');
   }
   
-  if (sourceTracking.srcBook) {
+  if (sourceTracking.source === 'Book – Influence First: Why Your Deals Are Dying (and How to Fix It)' || sourceTracking.srcBook) {
     tags.push('SRC_BOOK');
   }
   

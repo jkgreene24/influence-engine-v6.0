@@ -99,6 +99,12 @@ export default function ContactPage() {
       return
     }
 
+    if (source === 'Other' && !otherSource.trim()) {
+      setError("Please specify how you heard about us")
+      setLoading(false)
+      return
+    }
+
     const phoneDigits = phone.replace(/\D/g, "")
     if (phoneDigits.length !== 10) {
       setError("Please enter a valid 10-digit phone number")
@@ -134,6 +140,7 @@ export default function ContactPage() {
         referrerName: source === 'Referral' ? referrerName : undefined,
         wordOfMouth: source === 'Word of Mouth' ? wordOfMouth : undefined,
         otherSource: source === 'Other' ? otherSource : undefined,
+        srcBook: source === 'Book – Influence First: Why Your Deals Are Dying (and How to Fix It)' ? true : false,
       }
       
       saveFunnelState(funnelState)
@@ -403,6 +410,7 @@ export default function ContactPage() {
                       <SelectItem value="REIA Event">REIA Event</SelectItem>
                       <SelectItem value="Social Media">Social Media</SelectItem>
                       <SelectItem value="Referral">Referral</SelectItem>
+                      <SelectItem value="Book – Influence First: Why Your Deals Are Dying (and How to Fix It)">Book – Influence First: Why Your Deals Are Dying (and How to Fix It)</SelectItem>
                       <SelectItem value="Word of Mouth">Word of Mouth</SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
@@ -482,15 +490,16 @@ export default function ContactPage() {
                 {source === 'Other' && (
                   <div>
                     <label htmlFor="otherSource" className="block text-sm font-medium text-gray-700 mb-2">
-                      Please Specify (Optional)
+                      Please Specify <span className="text-red-500">*</span>
                     </label>
                     <Input
                       id="otherSource"
                       type="text"
                       value={otherSource}
                       onChange={(e) => setOtherSource(e.target.value)}
-                      placeholder="How did you hear about us?"
+                      placeholder="Please specify"
                       className="h-12 border-gray-300 focus:border-[#92278F] focus:ring-[#92278F]"
+                      required
                     />
                   </div>
                 )}
