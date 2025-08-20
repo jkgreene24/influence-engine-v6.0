@@ -1,32 +1,49 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { toDbFormat } from "@/lib/utils/db-conversions";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
-    console.log("Environment variables check:");
-    console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing");
-    console.log("SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "Set" : "Missing");
-    
-    const supabase = await createClient();
     const body = await request.json();
     
-    // Convert frontend format to database format
-    const dbData = toDbFormat(body);
+    console.log("Inserting new user:", body);
     
-    console.log("Attempting to insert:", dbData);
+    // Create Supabase client
+    const supabase = await createClient();
     
-    const { data, error } = await supabase.from("influence_users").insert(dbData).select();
+    // Insert user into Supabase
+    const { data: user, error } = await supabase
+      .from('influence_users')
+      .insert({
+        first_name: body.firstName,
+        last_name: body.lastName,
+        email: body.email,
+        phone: body.phone || null,
+        company: body.company || null,
+        role: body.role || null,
+        email_verified: body.emailVerified ?? false,
+        quiz_completed: body.quizCompleted ?? false,
+        demo_watched: body.demoWatched ?? false,
+        nda_signed: body.ndaSigned ?? false,
+        signature_url: body.signatureData || null,
+        influence_style: body.influenceStyle || null,
+        paid_at: body.paidAt || null,
+        paid_for: body.paidFor || null,
+        nda_digital_signature: body.ndaDigitalSignature || null,
+        // Source tracking as JSONB
+        source_tracking: body.sourceTracking || null,
+      })
+      .select()
+      .single();
     
     if (error) {
       console.error("Supabase error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
     }
     
-    console.log("Insert successful:", data);
+    console.log("User created successfully:", user);
     
-    // Return the inserted data
-    return NextResponse.json({ success: true, data });
+    // Return the created user
+    return NextResponse.json({ success: true, data: user });
   } catch (error) {
     console.error("Route error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

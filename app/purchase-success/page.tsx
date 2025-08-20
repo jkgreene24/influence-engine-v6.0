@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, CheckCircle, Gift, Users, Zap, Navigation, Link, Anchor, Crown } from "lucide-react"
+import { ArrowRight, CheckCircle, Users, Zap, Navigation, Link, Anchor, Crown } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 export default function PurchaseSuccessPage() {
@@ -160,43 +160,35 @@ export default function PurchaseSuccessPage() {
     if (purchaseType === "betty") {
       return "Your AI-powered influence coaching system is now active!"
     }
-    return `Your ${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} toolkit is now yours.`
+    return `Your purchase is complete.`
   }
 
-  const getNextSteps = () => {
-    if (purchaseType === "betty") {
-      return [
-        "Payment processed successfully ✓",
-        "Betty AI system activated ✓",
-        "Welcome email sent ✓",
-        "Notion resource hub access granted ✓",
-        "Slack community invitation sent ✓",
-        "Lifetime access granted ✓"
-      ]
-    }
-    return [
-      "Payment processed successfully ✓",
-      "Toolkit access granted ✓",
-      "Welcome email sent ✓",
-      "Digital resource library unlocked ✓"
-    ]
-  }
-
-  const getEmailContent = () => {
-    if (purchaseType === "betty") {
-      return [
-        "Betty AI system login credentials",
-        "Notion resource hub invitation link",
-        "Slack community invitation link",
-        "Getting started guide and tutorials",
-        "Lifetime access confirmation"
-      ]
-    }
-    return [
-      `Complete ${user?.primaryInfluenceStyle}${user?.secondaryInfluenceStyle ? ` + ${user.secondaryInfluenceStyle}` : ''} toolkit document (PDF)`,
-      "Digital resource library access",
-      "Getting started guide and next steps"
-    ]
+  const getPurchasedItems = () => {
+    if (!user?.cart) return []
+    
+    const items = user.cart
+    const purchasedItems: string[] = []
+    
+    items.forEach((item: string) => {
+      switch (item) {
+        case 'Book':
+          purchasedItems.push('Influence First Book (PDF)')
+          break
+        case 'Toolkit':
+          purchasedItems.push(`${user?.influenceStyle || 'Your'} Influence Toolkit (PDF)`)
+          break
+        case 'IE_Annual':
+          purchasedItems.push('Influence Engine Annual Access (Shared Link)')
+          break
+        case 'Bundle':
+          purchasedItems.push('Complete Bundle: Book + Toolkit + IE Annual Access')
+          break
+        default:
+          purchasedItems.push(item)
+      }
+    })
+    
+    return purchasedItems
   }
 
   if (loading) {
@@ -241,131 +233,29 @@ export default function PurchaseSuccessPage() {
               <Badge className="bg-[#92278F] text-white text-lg px-4 py-2 mb-6">PREMIUM ACCESS</Badge>
             )}
 
-            {sessionId && (
-              <div className="bg-white rounded-lg p-4 mb-6 border">
-                <p className="text-sm text-gray-600 mb-2">Transaction ID:</p>
-                <p className="font-mono text-sm bg-gray-100 p-2 rounded">{sessionId}</p>
-                <p className="text-sm text-gray-600 mt-2">Payment Date:</p>
-                <p className="text-sm font-medium">{new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
-              </div>
-            )}
+                         {sessionId && (
+               <div className="bg-white rounded-lg p-4 mb-6 border">
+                 <p className="text-sm text-gray-600 mb-2">Transaction ID:</p>
+                 <p className="font-mono text-sm bg-gray-100 p-2 rounded">{sessionId}</p>
+                 <p className="text-sm text-gray-600 mt-2">Payment Date:</p>
+                 <p className="text-sm font-medium">{new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
+               </div>
+             )}
 
-            <div className="bg-white rounded-lg p-6 mb-8 border">
-              <h3 className="font-bold text-gray-900 mb-4">What's Next:</h3>
-              <div className="text-left space-y-3">
-                {getNextSteps().map((step, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className="text-gray-700">{step}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Full Profile Display - Only for toolkit purchases */}
-            {purchaseType === "toolkit" && fullProfile && (
-              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    {/* User's Style Display */}
-                    {user.primaryInfluenceStyle && (
-                      <div className="flex justify-center items-center space-x-4 mb-8">
-                        <div
-                          className={`w-16 h-16 ${getStyleColor(user.primaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
-                        >
-                          {getStyleIcon(user.primaryInfluenceStyle)}
-                        </div>
-                        {user.secondaryInfluenceStyle && (
-                          <>
-                            <div className="text-2xl font-bold text-[#92278F]">+</div>
-                            <div
-                              className={`w-16 h-16 ${getStyleColor(user.secondaryInfluenceStyle)} rounded-full flex items-center justify-center text-white`}
-                            >
-                              {getStyleIcon(user.secondaryInfluenceStyle)}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                      {user.primaryInfluenceStyle}
-                      {user.secondaryInfluenceStyle && ` + ${user.secondaryInfluenceStyle}`} Full Toolkit
-                    </h2>
-                    <p className="text-gray-600">Your complete influence framework is now unlocked</p>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-6 border">
-                    <h3 className="font-bold text-gray-900 mb-4">Complete Influence Style Framework</h3>
-                    <div className="text-gray-700 text-lg leading-relaxed text-left">
-                      {fullProfile.full_profile ? formatProfileText(fullProfile.full_profile) : "Loading your complete toolkit..."}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {purchaseType === "toolkit" && profileLoading && (
-              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                <CardContent className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#92278F] mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading your complete toolkit...</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Betty-specific content */}
-            {purchaseType === "betty" && (
-              <Card className="mb-8 border-2 border-[#92278F]/20 bg-gradient-to-r from-[#92278F]/5 to-purple-50">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-[#92278F] rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Crown className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">The Influence Engine™</h2>
-                  <p className="text-gray-600 mb-6">Your AI-powered influence coaching system is ready!</p>
-                  
-                  <div className="bg-white rounded-lg p-6 border">
-                    <h3 className="font-bold text-gray-900 mb-4">What Betty Provides:</h3>
-                    <div className="text-left space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                        <span className="text-gray-700">AI-powered influence coaching</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                        <span className="text-gray-700">Personalized conversation scripts</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                        <span className="text-gray-700">Real-time strategy guidance</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                        <span className="text-gray-700">Private Notion resource hub</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-5 h-5 text-[#92278F]" />
-                        <span className="text-gray-700">Slack community access</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="bg-white rounded-lg p-6 mb-8 border">
-              <h3 className="font-bold text-gray-900 mb-4">📧 Automated Email Coming Soon</h3>
-              <p className="text-gray-600 mb-4">
-                You'll receive an automated email within 24 hours with:
-              </p>
-              <div className="text-left space-y-2">
-                {getEmailContent().map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Gift className="w-4 h-4 text-green-500" />
-                    <span className="text-gray-700">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+             {/* Purchased Items Display */}
+             {getPurchasedItems().length > 0 && (
+               <div className="bg-white rounded-lg p-6 mb-8 border">
+                 <h3 className="font-bold text-gray-900 mb-4 text-center">What You Purchased:</h3>
+                 <div className="space-y-3">
+                   {getPurchasedItems().map((item, index) => (
+                     <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                       <span className="text-gray-700 font-medium">{item}</span>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}            
 
             <Button
               onClick={() => router.push("/")}

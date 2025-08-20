@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import Stripe from "stripe";
-import { headers } from "next/headers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-07-30.basil",
@@ -10,13 +10,12 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
   const body = await request.text();
-  const headersList = await headers();
-  const sig = headersList.get("stripe-signature");
+  const sig = request.headers.get("stripe-signature")!;
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig!, endpointSecret);
+    event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 });
@@ -27,32 +26,97 @@ export async function POST(request: Request) {
   // Handle the event
   switch (event.type) {
     case "checkout.session.completed":
-      const session = event.data.object as Stripe.Checkout.Session;
-      console.log("Payment successful for session:", session.id);
-      
-      // Here you would:
-      // 1. Send welcome email with toolkit access
-      // 2. Add user to community/notion access
-      // 3. Log the successful purchase
-      
-      console.log("Session metadata:", session.metadata);
-      console.log("Customer email:", session.customer_email);
+      await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
       break;
-      
     case "payment_intent.succeeded":
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      console.log("Payment succeeded:", paymentIntent.id);
-      console.log("Payment intent metadata:", paymentIntent.metadata);
+      await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
       break;
-      
     case "payment_intent.payment_failed":
-      const failedPayment = event.data.object as Stripe.PaymentIntent;
-      console.log("Payment failed:", failedPayment.id);
+      await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
       break;
-      
     default:
       console.log(`Unhandled event type: ${event.type}`);
   }
 
   return NextResponse.json({ received: true });
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log("Processing completed checkout session:", session.id);
+
+  try {
+    const supabase = await createClient();
+
+    // Extract user information from metadata
+    const userId = session.metadata?.userId;
+    const userEmail = session.metadata?.userEmail;
+    const cart = session.metadata?.cart;
+
+    console.log("Webhook metadata:", {
+      userId,
+      userEmail,
+      cart,
+      allMetadata: session.metadata
+    });
+
+    if (!userId || !userEmail) {
+      console.error("Missing user information in session metadata");
+      return;
+    }
+
+    // Convert userId to number if it's a string
+    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    console.log("Processing payment for user ID:", numericUserId, "Type:", typeof numericUserId);
+
+    // Update user payment status
+    const updateData = {
+      paid_at: new Date().toISOString(),
+      paid_for: cart || '',
+    };
+    
+    console.log("Updating user payment status:", {
+      userId: numericUserId,
+      updateData
+    });
+
+    const { error: updateError } = await supabase
+      .from('influence_users')
+      .update(updateData)
+      .eq('id', numericUserId);
+
+    if (updateError) {
+      console.error("Error updating user payment status:", updateError);
+      return;
+    }
+
+    console.log("User payment status updated successfully for user:", userId);
+
+    // Store webhook event for audit
+    const { error: webhookError } = await supabase
+      .from('webhook_events')
+      .insert({
+        stripe_event_id: session.id,
+        event_type: 'checkout.session.completed',
+        event_data: session,
+        processed: true,
+        processed_at: new Date().toISOString(),
+      });
+
+    if (webhookError) {
+      console.error("Error storing webhook event:", webhookError);
+    }
+
+  } catch (error) {
+    console.error("Error processing checkout session completed:", error);
+  }
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  console.log("Payment intent succeeded:", paymentIntent.id);
+  // Additional payment success logic can be added here
+}
+
+async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+  console.log("Payment intent failed:", paymentIntent.id);
+  // Handle payment failure logic here
 } 
