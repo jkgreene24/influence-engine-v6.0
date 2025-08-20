@@ -53,6 +53,7 @@ interface QuizState {
       analyticsTag: string
       timestamp: string
     }>
+    questionFlow: QuizQuestion[]
   }>
 }
 
@@ -125,22 +126,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Take charge and push things forward", styles: ["catalyst"], analyticsTag: "Q1_A" },
       { id: "B", text: "Build consensus and buy‑in", styles: ["diplomat"], analyticsTag: "Q1_B" },
       { id: "C", text: "Adapt depending on who's in the room", styles: ["navigator"], analyticsTag: "Q1_C" },
-      { id: "D", text: "A mix of two or more", styles: ["catalyst", "diplomat", "navigator"], isMix: true, analyticsTag: "Q1_MIX" },
-      { id: "E", text: "None of these feel right", styles: [], isNone: true, altBank: "Q1-Alt", analyticsTag: "Q1_NONE" }
+      { id: "D", text: "A mix of two or more of these", styles: ["catalyst", "diplomat", "navigator"], isMix: true, analyticsTag: "Q1_MIX" },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q1-Alt", analyticsTag: "Q1_NONE" }
     ]
   },
-  {
-    id: "Q1-Alt",
-    question: "How do you usually lead or influence others?",
-    answers: [
-      { id: "A", text: "Step back, listen, and provide calm direction", styles: ["anchor"] },
-      { id: "B", text: "Connect people, ideas, or opportunities", styles: ["connector"] },
-      { id: "C", text: "Spark vision and inspire bold action", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["anchor", "connector", "catalyst"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q1"
-  },
+      {
+      id: "Q1-Alt",
+      question: "How do you usually lead or influence others?",
+      answers: [
+        { id: "A", text: "Step back, listen, and provide calm direction", styles: ["anchor"] },
+        { id: "B", text: "Connect people, ideas, or opportunities", styles: ["connector"] },
+        { id: "C", text: "Spark vision and inspire bold action", styles: ["catalyst"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["anchor", "connector", "catalyst"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q1"
+    },
   {
     id: "Q2",
     question: "When things stall out, I usually…",
@@ -148,8 +149,8 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Talk to people and get everyone back on the same page", styles: ["diplomat"] },
       { id: "B", text: "Pause, give space, and let people cool off", styles: ["anchor"] },
       { id: "C", text: "Reframe the situation to highlight shared goals", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["diplomat", "anchor", "navigator"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q2-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["diplomat", "anchor", "navigator"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q2-Alt" }
     ]
   },
   {
@@ -159,7 +160,7 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Light a fire to get people moving again", styles: ["catalyst"] },
       { id: "B", text: "Connect them to resources or people who can help", styles: ["connector"] },
       { id: "C", text: "Step back and provide clarity from outside the conflict", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["catalyst", "connector", "navigator"], isMix: true }
+      { id: "D", text: "A mix of two or more of these", styles: ["catalyst", "connector", "navigator"], isMix: true }
     ],
     isAlt: true,
     altBankFor: "Q2"
@@ -171,22 +172,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Move fast and push forward", styles: ["catalyst"] },
       { id: "B", text: "Take time and weigh risks carefully", styles: ["anchor"] },
       { id: "C", text: "Seek feedback and input before deciding", styles: ["diplomat"] },
-      { id: "D", text: "Mix", styles: ["catalyst", "anchor", "diplomat"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q3-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["catalyst", "anchor", "diplomat"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q3-Alt" }
     ]
   },
-  {
-    id: "Q3-Alt",
-    question: "When making decisions, I usually…",
-    answers: [
-      { id: "A", text: "Reframe options until the best path is clear", styles: ["navigator"] },
-      { id: "B", text: "Find who can help us move faster", styles: ["connector"] },
-      { id: "C", text: "Trust my intuition and act decisively", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["navigator", "connector", "catalyst"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q3"
-  },
+      {
+      id: "Q3-Alt",
+      question: "When making decisions, I usually…",
+      answers: [
+        { id: "A", text: "Reframe options until the best path is clear", styles: ["navigator"] },
+        { id: "B", text: "Find who can help us move faster", styles: ["connector"] },
+        { id: "C", text: "Trust my intuition and act decisively", styles: ["catalyst"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["navigator", "connector", "catalyst"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q3"
+    },
   {
     id: "Q4",
     question: "When a situation feels uncertain or tense, I usually…",
@@ -194,22 +195,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Slow things down and create stability", styles: ["anchor"] },
       { id: "B", text: "Push forward with bold energy", styles: ["catalyst"] },
       { id: "C", text: "Look for common ground", styles: ["diplomat"] },
-      { id: "D", text: "Mix", styles: ["anchor", "catalyst", "diplomat"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q4-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["anchor", "catalyst", "diplomat"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q4-Alt" }
     ]
   },
-  {
-    id: "Q4-Alt",
-    question: "When a situation feels uncertain or tense, I usually…",
-    answers: [
-      { id: "A", text: "Step in with clarity and direction", styles: ["navigator"] },
-      { id: "B", text: "Connect people to ease tension", styles: ["connector"] },
-      { id: "C", text: "Share a vision that calms or inspires", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["navigator", "connector", "catalyst"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q4"
-  },
+      {
+      id: "Q4-Alt",
+      question: "When a situation feels uncertain or tense, I usually…",
+      answers: [
+        { id: "A", text: "Step in with clarity and direction", styles: ["navigator"] },
+        { id: "B", text: "Connect people to ease tension", styles: ["connector"] },
+        { id: "C", text: "Share a vision that calms or inspires", styles: ["catalyst"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["navigator", "connector", "catalyst"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q4"
+    },
   {
     id: "Q5",
     question: "With a skeptical stakeholder or counterpart, my first move is to…",
@@ -217,22 +218,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Lay out a clear plan and next steps", styles: ["navigator"] },
       { id: "B", text: "Hear them out and rebuild common ground", styles: ["diplomat"] },
       { id: "C", text: "Paint a compelling vision of the upside", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["navigator", "diplomat", "catalyst"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q5-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["navigator", "diplomat", "catalyst"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q5-Alt" }
     ]
   },
-  {
-    id: "Q5-Alt",
-    question: "With a skeptical stakeholder or counterpart, my first move is to…",
-    answers: [
-      { id: "A", text: "De‑risk the path and stabilize expectations", styles: ["anchor"] },
-      { id: "B", text: "Bring in the right person/resource to unlock momentum", styles: ["connector"] },
-      { id: "C", text: "Reframe success criteria so interests align", styles: ["diplomat"] },
-      { id: "D", text: "Mix", styles: ["anchor", "connector", "diplomat"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q5"
-  },
+      {
+      id: "Q5-Alt",
+      question: "With a skeptical stakeholder or counterpart, my first move is to…",
+      answers: [
+        { id: "A", text: "De‑risk the path and stabilize expectations", styles: ["anchor"] },
+        { id: "B", text: "Bring in the right person/resource to unlock momentum", styles: ["connector"] },
+        { id: "C", text: "Reframe success criteria so interests align", styles: ["diplomat"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["anchor", "connector", "diplomat"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q5"
+    },
   {
     id: "Q6",
     question: "In group settings, my natural role is…",
@@ -240,22 +241,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Bringing people together and making introductions", styles: ["connector"] },
       { id: "B", text: "Offering structure and direction", styles: ["navigator"] },
       { id: "C", text: "Inspiring with bold ideas", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["connector", "navigator", "catalyst"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q6-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["connector", "navigator", "catalyst"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q6-Alt" }
     ]
   },
-  {
-    id: "Q6-Alt",
-    question: "In group settings, my natural role is…",
-    answers: [
-      { id: "A", text: "Keeping the group calm and steady", styles: ["anchor"] },
-      { id: "B", text: "Making sure all voices are heard", styles: ["diplomat"] },
-      { id: "C", text: "Suggesting new opportunities or collaborations", styles: ["connector"] },
-      { id: "D", text: "Mix", styles: ["anchor", "diplomat", "connector"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q6"
-  },
+      {
+      id: "Q6-Alt",
+      question: "In group settings, my natural role is…",
+      answers: [
+        { id: "A", text: "Keeping the group calm and steady", styles: ["anchor"] },
+        { id: "B", text: "Making sure all voices are heard", styles: ["diplomat"] },
+        { id: "C", text: "Suggesting new opportunities or collaborations", styles: ["connector"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["anchor", "diplomat", "connector"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q6"
+    },
   {
     id: "Q7",
     question: "When a group is divided, I'm most effective when I…",
@@ -263,22 +264,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Facilitate the conversation so everyone feels heard", styles: ["diplomat"] },
       { id: "B", text: "Propose clear structure and decision rules", styles: ["navigator"] },
       { id: "C", text: "Rally people around a motivating common goal", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["diplomat", "navigator", "catalyst"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q7-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["diplomat", "navigator", "catalyst"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q7-Alt" }
     ]
   },
-  {
-    id: "Q7-Alt",
-    question: "When a group is divided, I'm most effective when I…",
-    answers: [
-      { id: "A", text: "Lower the temperature and restore stability", styles: ["anchor"] },
-      { id: "B", text: "Connect key people privately to unblock movement", styles: ["connector"] },
-      { id: "C", text: "Reframe the issue so trade‑offs are clearer", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["anchor", "connector", "navigator"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q7"
-  },
+      {
+      id: "Q7-Alt",
+      question: "When a group is divided, I'm most effective when I…",
+      answers: [
+        { id: "A", text: "Lower the temperature and restore stability", styles: ["anchor"] },
+        { id: "B", text: "Connect key people privately to unblock movement", styles: ["connector"] },
+        { id: "C", text: "Reframe the issue so trade‑offs are clearer", styles: ["navigator"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["anchor", "connector", "navigator"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q7"
+    },
   {
     id: "Q8",
     question: "When others are anxious or overwhelmed, I usually…",
@@ -286,22 +287,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Stay calm, slow things down, and provide stability", styles: ["anchor"] },
       { id: "B", text: "Fire up energy and motivate action", styles: ["catalyst"] },
       { id: "C", text: "Reframe the issue so it feels manageable", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["anchor", "catalyst", "navigator"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q8-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["anchor", "catalyst", "navigator"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q8-Alt" }
     ]
   },
-  {
-    id: "Q8-Alt",
-    question: "When others are anxious or overwhelmed, I usually…",
-    answers: [
-      { id: "A", text: "Help them rebuild trust by listening", styles: ["diplomat"] },
-      { id: "B", text: "Connect them to someone who can ease the load", styles: ["connector"] },
-      { id: "C", text: "Share a bigger vision of why this matters", styles: ["catalyst"] },
-      { id: "D", text: "Mix", styles: ["diplomat", "connector", "catalyst"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q8"
-  },
+      {
+      id: "Q8-Alt",
+      question: "When others are anxious or overwhelmed, I usually…",
+      answers: [
+        { id: "A", text: "Help them rebuild trust by listening", styles: ["diplomat"] },
+        { id: "B", text: "Connect them to someone who can ease the load", styles: ["connector"] },
+        { id: "C", text: "Share a bigger vision of why this matters", styles: ["catalyst"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["diplomat", "connector", "catalyst"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q8"
+    },
   {
     id: "Q9",
     question: "When moving a project forward, I'm most likely to…",
@@ -309,22 +310,22 @@ const coreQuestions: QuizQuestion[] = [
       { id: "A", text: "Spot opportunities and pull in the right people", styles: ["connector"] },
       { id: "B", text: "Keep steady progress without drama", styles: ["anchor"] },
       { id: "C", text: "Lay out milestones and structure", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["connector", "anchor", "navigator"], isMix: true },
-      { id: "E", text: "None", styles: [], isNone: true, altBank: "Q9-Alt" }
+      { id: "D", text: "A mix of two or more of these", styles: ["connector", "anchor", "navigator"], isMix: true },
+      { id: "E", text: "None of these feel right. Show me different options.", styles: [], isNone: true, altBank: "Q9-Alt" }
     ]
   },
-  {
-    id: "Q9-Alt",
-    question: "When moving a project forward, I'm most likely to…",
-    answers: [
-      { id: "A", text: "Build trust so people feel safe committing", styles: ["diplomat"] },
-      { id: "B", text: "Push hard and create urgency", styles: ["catalyst"] },
-      { id: "C", text: "Step in with clarity and direction", styles: ["navigator"] },
-      { id: "D", text: "Mix", styles: ["diplomat", "catalyst", "navigator"], isMix: true }
-    ],
-    isAlt: true,
-    altBankFor: "Q9"
-  }
+      {
+      id: "Q9-Alt",
+      question: "When moving a project forward, I'm most likely to…",
+      answers: [
+        { id: "A", text: "Build trust so people feel safe committing", styles: ["diplomat"] },
+        { id: "B", text: "Push hard and create urgency", styles: ["catalyst"] },
+        { id: "C", text: "Step in with clarity and direction", styles: ["navigator"] },
+        { id: "D", text: "A mix of two or more of these", styles: ["diplomat", "catalyst", "navigator"], isMix: true }
+      ],
+      isAlt: true,
+      altBankFor: "Q9"
+    }
 ];
 
 // Q10 Clarifier question
@@ -471,7 +472,7 @@ export default function QuickQuiz() {
 
   const progress = getProgress();
 
-  // Calculate scores based on answers
+  // Calculate scores based on answers (normalized by 3x to avoid floating-point precision issues)
   const calculateScores = (answers: Record<string, string>): Record<string, number> => {
     const scores = {
       anchor: 0,
@@ -506,9 +507,9 @@ export default function QuickQuiz() {
       console.log(`   Analytics tag: ${answer.analyticsTag}`);
 
       if (answer.isMix && answer.styles.length > 0) {
-        // Split +1 evenly across styles
-        const pointsPerStyle = 1 / answer.styles.length;
-        console.log(`   📊 MIX answer - splitting ${pointsPerStyle} points per style`);
+        // Split +3 evenly across styles (normalized to avoid floating-point issues)
+        const pointsPerStyle = 3 / answer.styles.length;
+        console.log(`   📊 MIX answer - splitting ${pointsPerStyle} points per style (normalized: +3 total)`);
         answer.styles.forEach(style => {
           if (scores[style as keyof typeof scores] !== undefined) {
             const oldScore = scores[style as keyof typeof scores];
@@ -517,13 +518,13 @@ export default function QuickQuiz() {
           }
         });
       } else if (!answer.isNone && answer.styles.length > 0) {
-        // Style answers = +1 to each mapped style
-        console.log(`   📊 STYLE answer - adding 1 point per style`);
+        // Style answers = +3 to each mapped style (normalized)
+        console.log(`   📊 STYLE answer - adding 3 points per style (normalized)`);
         answer.styles.forEach(style => {
           if (scores[style as keyof typeof scores] !== undefined) {
             const oldScore = scores[style as keyof typeof scores];
-            scores[style as keyof typeof scores] += 1;
-            console.log(`   ➕ ${style}: ${oldScore} → ${scores[style as keyof typeof scores]} (+1)`);
+            scores[style as keyof typeof scores] += 3;
+            console.log(`   ➕ ${style}: ${oldScore} → ${scores[style as keyof typeof scores]} (+3)`);
           }
         });
       } else {
@@ -551,15 +552,15 @@ export default function QuickQuiz() {
     const [primaryStyle, primaryScore] = sortedScores[0];
     const [secondaryStyle, secondaryScore] = sortedScores[1];
 
-    // Only trigger Q10 if top two are within 1 point
+    // Only trigger Q10 if top two are within 3 points (normalized scoring)
     // Remove the "scattered across 3+" condition as it's causing false positives
-    const withinOnePoint = Math.abs(primaryScore - secondaryScore) <= 1;
+    const withinOnePoint = Math.abs(primaryScore - secondaryScore) <= 3;
 
     console.log(`\n=== Q10 DECISION ===`);
     console.log(`Primary: ${primaryStyle} (${primaryScore})`);
     console.log(`Secondary: ${secondaryStyle} (${secondaryScore})`);
     console.log(`Score difference: ${Math.abs(primaryScore - secondaryScore)}`);
-    console.log(`Within 1 point: ${withinOnePoint}`);
+    console.log(`Within 3 points (normalized): ${withinOnePoint}`);
     console.log(`Q10 needed: ${withinOnePoint}`);
     console.log(`=====================\n`);
 
@@ -586,8 +587,8 @@ export default function QuickQuiz() {
         q10AnswerObj.styles.forEach(style => {
           if (finalScores[style as keyof typeof finalScores] !== undefined) {
             const oldScore = finalScores[style as keyof typeof finalScores];
-            finalScores[style as keyof typeof finalScores] += 1;
-            console.log(`   ➕ ${style}: ${oldScore} → ${finalScores[style as keyof typeof finalScores]} (+1)`);
+            finalScores[style as keyof typeof finalScores] += 3;
+            console.log(`   ➕ ${style}: ${oldScore} → ${finalScores[style as keyof typeof finalScores]} (+3)`);
           }
         });
       } else {
@@ -621,14 +622,14 @@ export default function QuickQuiz() {
     const [primaryStyle, primaryScore] = sortedScores[0];
     const [secondaryStyle, secondaryScore] = sortedScores[1] || [null, 0];
 
-    // Determine if it's a blend (top two within 1 point)
-    const isBlend = secondaryStyle && Math.abs(primaryScore - secondaryScore) <= 1;
+    // Determine if it's a blend (top two within 3 points - normalized scoring)
+    const isBlend = secondaryStyle && Math.abs(primaryScore - secondaryScore) <= 3;
     
     console.log(`\n--- RESULT ---`);
     console.log(`Primary: ${primaryStyle} (${primaryScore})`);
     console.log(`Secondary: ${secondaryStyle} (${secondaryScore})`);
     console.log(`Is blend: ${isBlend}`);
-    console.log(`Score difference: ${Math.abs(primaryScore - secondaryScore)}`);
+    console.log(`Score difference: ${Math.abs(primaryScore - secondaryScore)} (normalized)`);
 
     const result = {
       primary: primaryStyle,
@@ -652,7 +653,8 @@ export default function QuickQuiz() {
       questionIndex: quizState.currentQuestionIndex,
       answers: { ...quizState.answers },
       scores: { ...quizState.scores },
-      analyticsData: [...quizState.analyticsData]
+      analyticsData: [...quizState.analyticsData],
+      questionFlow: [...currentQuestionFlow]
     }];
     setQuizState(prev => ({ ...prev, history: newHistory }));
   };
@@ -746,8 +748,11 @@ export default function QuickQuiz() {
       history: newHistory
     }));
 
+    // Restore the question flow from history
+    setCurrentQuestionFlow(previousState.questionFlow);
+
     // Set selected answer for previous question
-    const prevQuestion = currentQuestionFlow[previousState.questionIndex];
+    const prevQuestion = previousState.questionFlow[previousState.questionIndex];
     if (prevQuestion) {
       setSelectedAnswer(previousState.answers[prevQuestion.id] || "");
     }
