@@ -24,6 +24,24 @@ export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext 
     return styleNames[style] || style
   }
 
+  const getToolkitTitle = () => {
+    if (funnelState.isBlend && funnelState.secondaryStyle) {
+      const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
+      const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
+      return `${primaryStyle} + ${secondaryStyle} Blend Toolkit`
+    }
+    return `${getStyleDisplayName(funnelState.influenceStyle)} Toolkit`
+  }
+
+  const getToolkitDescription = () => {
+    if (funnelState.isBlend && funnelState.secondaryStyle) {
+      const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
+      const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
+      return `You've seen your snapshot. Now unlock the complete playbook for your unique ${primaryStyle} + ${secondaryStyle} blend so you never leave influence (or deals) to chance.`
+    }
+    return "You've seen your snapshot. Now unlock the full playbook for your style so you never leave influence (or deals) to chance."
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-[#92278F] to-[#a83399] text-white py-12">
@@ -55,10 +73,10 @@ export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext 
               
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  {getStyleDisplayName(funnelState.influenceStyle)} Toolkit
+                  {getToolkitTitle()}
                 </h2>
                 <p className="text-lg text-gray-700">
-                  You've seen your snapshot. Now unlock the full playbook for your style so you never leave influence (or deals) to chance.
+                  {getToolkitDescription()}
                 </p>
               </div>
             </div>

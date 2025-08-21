@@ -19,9 +19,29 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
     
     // Add individual products
     if (funnelState.products.toolkit.selected) {
+      const getStyleDisplayName = (style: string) => {
+        const styleNames: Record<string, string> = {
+          catalyst: "Catalyst",
+          diplomat: "Diplomat", 
+          anchor: "Anchor",
+          navigator: "Navigator",
+          connector: "Connector"
+        }
+        return styleNames[style] || style
+      }
+
+      let toolkitDescription = ""
+      if (funnelState.isBlend && funnelState.secondaryStyle) {
+        const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
+        const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
+        toolkitDescription = `${primaryStyle} + ${secondaryStyle} Blend Toolkit`
+      } else {
+        toolkitDescription = `${getStyleDisplayName(funnelState.influenceStyle)} Style Toolkit`
+      }
+
       products.push({
         name: "Influence Style Toolkit",
-        description: `${funnelState.influenceStyle.charAt(0).toUpperCase() + funnelState.influenceStyle.slice(1)} Style Toolkit`,
+        description: toolkitDescription,
         price: 79,
         image: "toolkit",
         type: "toolkit"
