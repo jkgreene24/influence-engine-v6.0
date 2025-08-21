@@ -67,14 +67,14 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
           <CardContent className="p-8">
             <div className="text-center space-y-6">
                 <div className="w-48 h-64 mx-auto flex items-center justify-center">
-                  <div className="w-48 h-48 rounded-lg shadow-lg overflow-hidden">
+                  <div className="w-48 h-48 rounded-lg shadow-lg overflow-hidden bg-white">
                     <img 
                       src={bundleType === 'engine' 
                         ? '/assets/funnel/product-images/bundle-engine-graphic.png'
                         : '/assets/funnel/product-images/bundle-mastery-graphic.png'
                       }
                       alt={`${bundleType} Bundle`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                 </div>

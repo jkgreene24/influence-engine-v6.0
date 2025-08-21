@@ -73,31 +73,31 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
     switch (product.type) {
       case 'toolkit':
         return (
-          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden">
+          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden bg-white">
             <img 
               src="/assets/funnel/toolkit-covers/Toolkit Cover Generic.png" 
               alt="Toolkit Cover"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )
       case 'engine':
         return (
-          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden">
+          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden bg-white">
             <img 
               src="/assets/funnel/product-images/influence-engine-screenshot.png" 
               alt="Influence Engine"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )
       case 'book':
         return (
-          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden">
+          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden bg-white">
             <img 
               src="/assets/funnel/product-images/book-cover.png" 
               alt="Book Cover"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )
@@ -107,11 +107,11 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
           ? '/assets/funnel/product-images/bundle-engine-graphic.png'
           : '/assets/funnel/product-images/bundle-mastery-graphic.png'
         return (
-          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden">
+          <div className="w-16 h-16 rounded-lg shadow-lg overflow-hidden bg-white">
             <img 
               src={bundleImage}
               alt={`${bundleType} Bundle`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )
