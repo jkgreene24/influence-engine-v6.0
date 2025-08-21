@@ -288,7 +288,7 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
             {/* Checkout Button */}
             <Button
               onClick={handleCheckout}
-              disabled={isSubmitting || selectedProducts.length === 0}
+              disabled={true}
               className="w-full bg-[#92278F] hover:bg-[#7a1f78] text-white py-4 text-lg font-semibold"
             >
               {isSubmitting ? "Processing..." : `Proceed to Checkout - $${getTotalPrice()}`}
