@@ -17,76 +17,116 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
   const getSelectedProducts = () => {
     const products = []
     
-    // Add individual products
-    if (funnelState.products.toolkit.selected) {
-      const getStyleDisplayName = (style: string) => {
-        const styleNames: Record<string, string> = {
-          catalyst: "Catalyst",
-          diplomat: "Diplomat", 
-          anchor: "Anchor",
-          navigator: "Navigator",
-          connector: "Connector"
-        }
-        return styleNames[style] || style
-      }
-
-      let toolkitDescription = ""
-      if (funnelState.isBlend && funnelState.secondaryStyle) {
-        const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
-        const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
-        toolkitDescription = `${primaryStyle} + ${secondaryStyle} Blend Toolkit`
-      } else {
-        toolkitDescription = `${getStyleDisplayName(funnelState.influenceStyle)} Style Toolkit`
-      }
-
-      products.push({
-        name: "Influence Style Toolkit",
-        description: toolkitDescription,
-        price: 79,
-        image: "toolkit",
-        type: "toolkit"
-      })
-    }
+    console.log("=== getSelectedProducts Debug ===")
+    console.log("Bundle selected:", funnelState.products.bundle.selected)
+    console.log("Cart contents:", funnelState.cart)
+    console.log("Cart items details:", funnelState.cart.map(item => ({ 
+      type: item.type, 
+      price: item.price, 
+      sku: item.stripeSku,
+      fullItem: item 
+    })))
     
-    if (funnelState.products.engine.selected) {
-      products.push({
-        name: "The Influence Engine™",
-        description: "AI-powered influence coaching platform",
-        price: 499,
-        image: "engine",
-        type: "engine"
-      })
-    }
-    
-    if (funnelState.products.book.selected) {
-      products.push({
-        name: "Influence First Book",
-        description: "Why Your Deals Are Dying (And How to Fix It)",
-        price: 19,
-        image: "book",
-        type: "book"
-      })
-    }
-    
-    // Add bundle if selected (replaces individual items)
+    // Check if bundle is selected first (bundles replace individual items)
     if (funnelState.products.bundle.selected) {
-      const bundleType = funnelState.products.engine.selected ? 'engine' : 'mastery'
+      // Determine bundle type from cart
+      const bundleCartItem = funnelState.cart.find(item => item.type.startsWith('bundle_'))
+      const bundleType = bundleCartItem?.type === 'bundle_engine' ? 'engine' : 'mastery'
+      
+      // Use the actual price from the cart item, not hardcoded prices
+      const bundlePrice = bundleCartItem?.price || (bundleType === 'engine' ? 547 : 347)
+      
+      console.log("Bundle cart item:", bundleCartItem)
+      console.log("Bundle type:", bundleType)
+      console.log("Bundle price:", bundlePrice)
+      
       products.push({
         name: bundleType === 'engine' ? "Influence Engine™ Bundle" : "Influence Mastery Bundle",
         description: bundleType === 'engine' 
           ? "Complete package: Engine + Toolkit + Book" 
           : "Mastery package: Toolkit + Book",
-        price: bundleType === 'engine' ? 547 : 347,
+        price: bundlePrice,
         image: "bundle",
-        type: "bundle"
+        type: "bundle",
+        bundleType: bundleType
       })
+    } else {
+      // Add individual products only if bundle is not selected
+      if (funnelState.products.toolkit.selected) {
+        const getStyleDisplayName = (style: string) => {
+          const styleNames: Record<string, string> = {
+            catalyst: "Catalyst",
+            diplomat: "Diplomat", 
+            anchor: "Anchor",
+            navigator: "Navigator",
+            connector: "Connector"
+          }
+          return styleNames[style] || style
+        }
+
+        let toolkitDescription = ""
+        if (funnelState.isBlend && funnelState.secondaryStyle) {
+          const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
+          const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
+          toolkitDescription = `${primaryStyle} + ${secondaryStyle} Blend Toolkit`
+        } else {
+          toolkitDescription = `${getStyleDisplayName(funnelState.influenceStyle)} Style Toolkit`
+        }
+
+        // Get the actual price from the cart item
+        const toolkitCartItem = funnelState.cart.find(item => item.type === 'toolkit')
+        const toolkitPrice = toolkitCartItem?.price || 79
+
+        products.push({
+          name: "Influence Style Toolkit",
+          description: toolkitDescription,
+          price: toolkitPrice,
+          image: "toolkit",
+          type: "toolkit"
+        })
+      }
+      
+      if (funnelState.products.engine.selected) {
+        // Get the actual price from the cart item
+        const engineCartItem = funnelState.cart.find(item => item.type === 'engine')
+        const enginePrice = engineCartItem?.price || 499
+
+        products.push({
+          name: "The Influence Engine™",
+          description: "AI-powered influence coaching platform",
+          price: enginePrice,
+          image: "engine",
+          type: "engine"
+        })
+      }
+      
+      if (funnelState.products.book.selected) {
+        // Get the actual price from the cart item
+        const bookCartItem = funnelState.cart.find(item => item.type === 'book')
+        const bookPrice = bookCartItem?.price || 19
+
+        products.push({
+          name: "Influence First Book",
+          description: "Why Your Deals Are Dying (And How to Fix It)",
+          price: bookPrice,
+          image: "book",
+          type: "book"
+        })
+      }
     }
+    
+    console.log("Final products array:", products)
+    console.log("=== End Debug ===")
     
     return products
   }
 
   const getTotalPrice = () => {
-    return funnelState.cart.reduce((sum, item) => sum + item.price, 0)
+    console.log("Cart contents:", funnelState.cart)
+    console.log("Bundle selected:", funnelState.products.bundle.selected)
+    const total = funnelState.cart.reduce((sum, item) => sum + item.price, 0)
+    console.log("Calculated total:", total)
+    return total
   }
 
   const getProductImage = (product: any) => {
@@ -122,7 +162,9 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
           </div>
         )
       case 'bundle':
-        const bundleType = funnelState.products.engine.selected ? 'engine' : 'mastery'
+        // Determine bundle type from cart item
+        const bundleCartItem = funnelState.cart.find(item => item.type.startsWith('bundle_'))
+        const bundleType = bundleCartItem?.type === 'bundle_engine' ? 'engine' : 'mastery'
         const bundleImage = bundleType === 'engine' 
           ? '/assets/funnel/product-images/bundle-engine-graphic.png'
           : '/assets/funnel/product-images/bundle-mastery-graphic.png'

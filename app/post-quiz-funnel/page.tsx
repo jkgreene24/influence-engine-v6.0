@@ -108,7 +108,7 @@ export default function PostQuizFunnelPage() {
       selectedAt: new Date().toISOString(),
     }
     
-    // Add to cart (simplified for now)
+    // Add to cart with proper Stripe configuration
     const cartItem = {
       type: productType as any,
       stripeSku: productType === 'toolkit' ? 'IE_TOOLKIT' : 
@@ -117,6 +117,15 @@ export default function PostQuizFunnelPage() {
       price: productType === 'toolkit' ? 79 : 
              productType === 'engine' ? 499 :
              productType === 'book' ? 19 : 547,
+      stripePriceId: productType === 'toolkit' ? process.env.STRIPE_TOOLKIT_PRICE_ID :
+                    productType === 'engine' ? process.env.STRIPE_ENGINE_PRICE_ID :
+                    productType === 'book' ? process.env.STRIPE_BOOK_PRICE_ID : process.env.STRIPE_BUNDLE_ENGINE_PRICE_ID,
+      metadata: {
+        productType: productType,
+        influenceStyle: funnelState.influenceStyle,
+        isBlend: funnelState.isBlend,
+        secondaryStyle: funnelState.secondaryStyle
+      }
     }
     updatedState.cart.push(cartItem)
     
@@ -360,29 +369,85 @@ export default function PostQuizFunnelPage() {
   const handleBundleSelection = async (bundleType: 'engine' | 'mastery') => {
     if (!funnelState) return
 
-    try {
-      const response = await fetch("/api/post-quiz-funnel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "select_bundle",
-          data: { bundleType },
-          userId: funnelState.userId,
-          userEmail: funnelState.userEmail,
-          influenceStyle: funnelState.influenceStyle,
-          secondaryStyle: funnelState.secondaryStyle,
-        }),
-      })
+    console.log("Selecting bundle:", bundleType)
 
-      if (response.ok) {
-        const { funnelState: updatedState } = await response.json()
-        setFunnelState(updatedState)
-      }
-    } catch (error) {
-      console.error("Error selecting bundle:", error)
+    // Handle bundle selection locally first
+    const updatedState = { ...funnelState }
+    
+    // Update bundle state
+    updatedState.products.bundle.selected = true
+    updatedState.products.bundle.selectedAt = new Date().toISOString()
+    updatedState.products.bundle.declined = false
+    
+    // Clear individual products and replace with bundle
+    updatedState.products.toolkit.selected = false
+    updatedState.products.engine.selected = false
+    updatedState.products.book.selected = false
+    
+    // Clear cart and add bundle
+    updatedState.cart = []
+    console.log("Cart cleared, adding bundle...")
+    
+    // Add bundle to cart based on type
+    if (bundleType === 'engine') {
+      updatedState.cart.push({
+        type: 'bundle_engine',
+        stripeSku: 'BUNDLE_ENGINE',
+        price: 547,
+        stripePriceId: process.env.STRIPE_BUNDLE_ENGINE_PRICE_ID,
+        metadata: {
+          bundleType: 'engine',
+          replacesIndividualItems: true,
+          replacesItems: ['toolkit', 'engine', 'book']
+        }
+      })
+      console.log("Added engine bundle to cart")
+    } else {
+      updatedState.cart.push({
+        type: 'bundle_mastery',
+        stripeSku: 'BUNDLE_MASTERY',
+        price: 347,
+        stripePriceId: process.env.STRIPE_BUNDLE_MASTERY_PRICE_ID,
+        metadata: {
+          bundleType: 'mastery',
+          replacesIndividualItems: true,
+          replacesItems: ['toolkit', 'book']
+        }
+      })
+      console.log("Added mastery bundle to cart")
     }
+    
+    console.log("Final cart after bundle selection:", updatedState.cart)
+    
+    // Add tags
+    updatedState.tags.push(`PROD_BUNDLE_${bundleType.toUpperCase()}`)
+    updatedState.tags.push('BUNDLE_REPLACES_INDIVIDUAL_ITEMS')
+    
+    // Remove individual product tags
+    updatedState.tags = updatedState.tags.filter(tag => 
+      !tag.startsWith('PROD_TOOLKIT') && 
+      !tag.startsWith('PROD_ENGINE') && 
+      !tag.startsWith('PROD_BOOK')
+    )
+    
+    updatedState.lastUpdatedAt = new Date().toISOString()
+    
+    console.log("Updated state after bundle selection:", updatedState)
+    setFunnelState(updatedState)
+
+    // Also move to next step (checkout) to preserve cart changes
+    const finalState = {
+      ...updatedState,
+      currentStep: 'checkout' as any,
+      lastUpdatedAt: new Date().toISOString(),
+    }
+    
+    // Mark bundle step as completed and checkout as started
+    finalState.tags.push('BUNDLE_COMPLETED')
+    finalState.tags.push('CHECKOUT_STARTED')
+    
+    console.log("Moving directly to checkout with bundle cart:", finalState.cart)
+    setFunnelState(finalState)
   }
 
   if (loading) {

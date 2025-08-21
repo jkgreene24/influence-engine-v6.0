@@ -12,14 +12,15 @@ interface BundleOfferProps {
 }
 
 export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }: BundleOfferProps) {
+  // Check if Engine was selected to determine bundle type
   const engineSelected = funnelState.products.engine.selected
   const bundleType = engineSelected ? 'engine' : 'mastery'
   
   const getBundleInfo = () => {
     if (engineSelected) {
       return {
-        title: "Engine Bundle",
-        description: "Complete Influence Engine™ Package",
+        title: "Influence Engine™ Bundle",
+        description: "Complete package: Engine + Toolkit + Book",
         items: [
           "⚙️ Influence Engine™ ($499)",
           "🧰 Toolkit ($79)", 
@@ -27,12 +28,13 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
         ],
         originalPrice: 597,
         discountedPrice: 547,
-        savings: 50
+        savings: 50,
+        subtitle: "If you said YES to Engine, you see the Engine Bundle:"
       }
     } else {
       return {
-        title: "Mastery Bundle",
-        description: "Influence Mastery Package",
+        title: "Influence Mastery Bundle",
+        description: "Mastery package: Toolkit + Book",
         items: [
           "🎥 Influence Mastery Package ($299, reg $399)",
           "🧰 Toolkit ($79)",
@@ -40,7 +42,8 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
         ],
         originalPrice: 397,
         discountedPrice: 347,
-        savings: 50
+        savings: 50,
+        subtitle: "If you said NO to Engine, you see the Mastery Bundle:"
       }
     }
   }
@@ -83,6 +86,9 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
                   {bundleInfo.title}
                 </h2>
+                <p className="text-lg text-gray-700 mb-4">
+                  {bundleInfo.subtitle}
+                </p>
                 <p className="text-lg text-gray-700">
                   {bundleInfo.description}
                 </p>
@@ -136,7 +142,6 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
             <Button
               onClick={() => {
                 onSelect(bundleType)
-                onNext()
               }}
               className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
             >
