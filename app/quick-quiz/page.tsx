@@ -841,23 +841,21 @@ export default function QuickQuiz() {
       return;
     }
 
-    let influenceStyle = result.primary.charAt(0).toUpperCase() + result.primary.slice(1);
-    if (result.secondary) {
-      influenceStyle += `-${result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1)}`;
-    }
-
+    // Store the raw style names (lowercase) for the funnel
     const updatedUser = {
       ...currentUser,
       quizCompleted: true,
-      primaryInfluenceStyle: result.primary.charAt(0).toUpperCase() + result.primary.slice(1),
-      secondaryInfluenceStyle: result.secondary ? result.secondary.charAt(0).toUpperCase() + result.secondary.slice(1) : null,
-      influenceStyle: influenceStyle,
+      primaryInfluenceStyle: result.primary,
+      secondaryInfluenceStyle: result.secondary || null,
+      influenceStyle: result.primary, // Use the raw primary style for funnel
       quizResult: result,
       quizCompletedAt: new Date().toISOString(),
     };
 
+    console.log("Saving user data to localStorage:", updatedUser);
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser));
-    router.push("/influence-demo");
+    console.log("Redirecting to post-quiz-funnel");
+    router.push("/post-quiz-funnel");
   };
 
   const getResultDisplay = () => {
@@ -980,17 +978,17 @@ export default function QuickQuiz() {
           <div className="text-center space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Ready to Continue Your Journey?</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Your influence style has been identified! Continue to watch the demo and get your personalized snapshot profile.
+              Your influence style has been identified! Get your personalized snapshot and discover your next steps.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 onClick={saveUserData}
                 className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
               >
-                Continue to Demo
+                Get My Snapshot →
               </Button>
             </div>
-            <p className="text-sm text-gray-500">Next: Watch the demo video to understand your influence style</p>
+            <p className="text-sm text-gray-500">Next: Your personalized influence style snapshot</p>
           </div>
         </div>
       </div>

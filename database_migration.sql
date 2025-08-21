@@ -31,3 +31,91 @@ CREATE TABLE IF NOT EXISTS public.webhook_events (
 -- Add index for performance
 CREATE INDEX IF NOT EXISTS idx_webhook_events_stripe_event_id ON public.webhook_events(stripe_event_id);
 CREATE INDEX IF NOT EXISTS idx_webhook_events_processed ON public.webhook_events(processed);
+
+-- Database migration for post-quiz funnel implementation
+-- Add new tables and columns to support the comprehensive funnel system
+
+-- Add new columns to existing influence_users table for funnel tracking
+ALTER TABLE influence_users ADD COLUMN IF NOT EXISTS demo_watch_percentage INTEGER DEFAULT 0;
+
+-- Create funnel_steps table to track user progress through the funnel
+CREATE TABLE IF NOT EXISTS funnel_steps (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES influence_users(id) ON DELETE CASCADE,
+    step_name VARCHAR(50) NOT NULL,
+    step_data JSONB,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create user_tags table for comprehensive tagging system
+CREATE TABLE IF NOT EXISTS user_tags (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES influence_users(id) ON DELETE CASCADE,
+    tag_name VARCHAR(100) NOT NULL,
+    tag_value TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, tag_name)
+);
+
+-- Create funnel_products table to track product selections
+CREATE TABLE IF NOT EXISTS funnel_products (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES influence_users(id) ON DELETE CASCADE,
+    product_type VARCHAR(50) NOT NULL, -- 'toolkit', 'engine', 'book', 'bundle_engine', 'bundle_mastery'
+    selected BOOLEAN DEFAULT FALSE,
+    declined BOOLEAN DEFAULT FALSE,
+    stripe_sku VARCHAR(100),
+    price DECIMAL(10,2),
+    selected_at TIMESTAMP,
+    declined_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create funnel_analytics table for detailed funnel analytics
+CREATE TABLE IF NOT EXISTS funnel_analytics (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES influence_users(id) ON DELETE CASCADE,
+    event_type VARCHAR(100) NOT NULL, -- 'step_completed', 'product_selected', 'product_declined', 'demo_watched', etc.
+    event_data JSONB,
+    step_name VARCHAR(50),
+    product_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create checkout_sessions table to track Stripe sessions
+CREATE TABLE IF NOT EXISTS checkout_sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES influence_users(id) ON DELETE CASCADE,
+    stripe_session_id VARCHAR(255) UNIQUE NOT NULL,
+    session_data JSONB,
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'completed', 'failed', 'expired'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_funnel_steps_user_id ON funnel_steps(user_id);
+CREATE INDEX IF NOT EXISTS idx_funnel_steps_step_name ON funnel_steps(step_name);
+CREATE INDEX IF NOT EXISTS idx_user_tags_user_id ON user_tags(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_tags_tag_name ON user_tags(tag_name);
+CREATE INDEX IF NOT EXISTS idx_funnel_products_user_id ON funnel_products(user_id);
+CREATE INDEX IF NOT EXISTS idx_funnel_products_product_type ON funnel_products(product_type);
+CREATE INDEX IF NOT EXISTS idx_funnel_analytics_user_id ON funnel_analytics(user_id);
+CREATE INDEX IF NOT EXISTS idx_funnel_analytics_event_type ON funnel_analytics(event_type);
+CREATE INDEX IF NOT EXISTS idx_checkout_sessions_user_id ON checkout_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_checkout_sessions_status ON checkout_sessions(status);
+
+-- Insert default funnel step for existing users
+INSERT INTO funnel_steps (user_id, step_name, step_data)
+SELECT id, 'snapshot', '{"delivered": true}'::jsonb
+FROM influence_users 
+WHERE funnel_step = 'snapshot' 
+AND id NOT IN (SELECT user_id FROM funnel_steps WHERE step_name = 'snapshot');
+
+-- Add comments for documentation
+COMMENT ON TABLE funnel_steps IS 'Tracks user progress through the post-quiz funnel';
+COMMENT ON TABLE user_tags IS 'Comprehensive tagging system for user segmentation and re-engagement';
+COMMENT ON TABLE funnel_products IS 'Tracks product selections and declines in the funnel';
+COMMENT ON TABLE funnel_analytics IS 'Detailed analytics for funnel optimization';
+COMMENT ON TABLE checkout_sessions IS 'Tracks Stripe checkout sessions and their status';
