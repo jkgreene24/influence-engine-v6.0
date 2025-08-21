@@ -396,27 +396,6 @@ export function getBundleCartItem(bundleType: 'engine' | 'mastery'): CartItem {
   };
 }
 
-// Local storage helpers
-export function saveFunnelState(state: PostQuizFunnelState): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('post_quiz_funnel_state', JSON.stringify(state));
-  }
-}
-
-export function loadFunnelState(): PostQuizFunnelState | null {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('post_quiz_funnel_state');
-    return saved ? JSON.parse(saved) : null;
-  }
-  return null;
-}
-
-export function clearFunnelState(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('post_quiz_funnel_state');
-  }
-}
-
 // Tag generation helpers
 export function generateSourceTags(sourceTracking: SourceTracking): string[] {
   const tags: string[] = [];

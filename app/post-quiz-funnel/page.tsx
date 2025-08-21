@@ -1,11 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { 
   PostQuizFunnelState, 
-  loadFunnelState, 
-  saveFunnelState,
   createInitialFunnelState
 } from "@/lib/utils/post-quiz-funnel-state"
 import SnapshotDelivery from "@/app/post-quiz-funnel/components/SnapshotDelivery"
@@ -20,6 +18,7 @@ export default function PostQuizFunnelPage() {
   const [funnelState, setFunnelState] = useState<PostQuizFunnelState | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     initializeFunnel()
@@ -29,45 +28,39 @@ export default function PostQuizFunnelPage() {
     try {
       console.log("=== FUNNEL INITIALIZATION START ===")
       
-      // Load funnel state from localStorage
-      let savedState = loadFunnelState()
-      console.log("Loaded saved state:", savedState)
+      // Get user data from URL parameters or create default state
+      const userId = searchParams.get('userId') || '0'
+      const userEmail = searchParams.get('email') || ''
+      const influenceStyle = searchParams.get('style') || ''
+      const secondaryStyle = searchParams.get('secondaryStyle') || ''
+      const isBlend = searchParams.get('isBlend') === 'true'
       
-      if (!savedState) {
-        console.log("No saved funnel state found, creating new one...")
-        
-        // Check if user has completed quiz and get their data
-        const currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null")
-        console.log("Current user from localStorage:", currentUser)
-        
-        if (!currentUser || !currentUser.quizCompleted) {
-          console.log("No user or quiz not completed, redirecting to quiz")
-          // Redirect to quiz if not completed
-          router.push("/quick-quiz")
-          return
-        }
-        
-        console.log("User data found, creating initial funnel state...")
-        console.log("User ID:", currentUser.id)
-        console.log("User Email:", currentUser.email)
-        console.log("Influence Style:", currentUser.influenceStyle || currentUser.primaryInfluenceStyle)
-        console.log("Secondary Style:", currentUser.secondaryInfluenceStyle)
-        
-        // Create initial funnel state
-        savedState = createInitialFunnelState(
-          currentUser.id || 0, // Use 0 as fallback if no ID
-          currentUser.email,
-          currentUser.influenceStyle || currentUser.primaryInfluenceStyle,
-          currentUser.secondaryInfluenceStyle
-        )
-        console.log("Created initial funnel state:", savedState)
-        
-        saveFunnelState(savedState)
-        console.log("Saved funnel state to localStorage")
+      console.log("URL params:", { userId, userEmail, influenceStyle, secondaryStyle, isBlend })
+      
+      if (!userEmail || !influenceStyle) {
+        console.log("Missing required user data, redirecting to quiz")
+        router.push("/quick-quiz")
+        return
       }
       
-      console.log("Setting funnel state:", savedState)
-      setFunnelState(savedState)
+      console.log("Creating initial funnel state...")
+      
+      // Create initial funnel state
+      const newState = createInitialFunnelState(
+        parseInt(userId) || 0,
+        userEmail,
+        influenceStyle,
+        secondaryStyle || undefined
+      )
+      
+      // Ensure isBlend is set correctly
+      if (isBlend && !newState.isBlend) {
+        newState.isBlend = true
+      }
+      
+      console.log("Created initial funnel state:", newState)
+      
+      setFunnelState(newState)
       setLoading(false)
       console.log("=== FUNNEL INITIALIZATION COMPLETE ===")
     } catch (error) {
@@ -81,7 +74,6 @@ export default function PostQuizFunnelPage() {
 
     const updatedState = { ...funnelState, ...newState }
     setFunnelState(updatedState)
-    saveFunnelState(updatedState)
 
     // Sync with database
     try {
@@ -138,7 +130,6 @@ export default function PostQuizFunnelPage() {
     
     console.log("Updated state after product selection:", updatedState)
     setFunnelState(updatedState)
-    saveFunnelState(updatedState)
 
     // Try to sync with database in background
     try {
@@ -196,7 +187,6 @@ export default function PostQuizFunnelPage() {
     
     console.log("Updated state after product decline:", updatedState)
     setFunnelState(updatedState)
-    saveFunnelState(updatedState)
 
     // Try to sync with database in background
     try {
@@ -285,7 +275,6 @@ export default function PostQuizFunnelPage() {
     console.log("Updated funnel state to:", updatedState.currentStep)
     console.log("Current tags:", updatedState.tags)
     setFunnelState(updatedState)
-    saveFunnelState(updatedState)
 
     // Try to sync with database in background (don't block UI)
     try {
@@ -334,7 +323,6 @@ export default function PostQuizFunnelPage() {
       if (response.ok) {
         const { funnelState: updatedState } = await response.json()
         setFunnelState(updatedState)
-        saveFunnelState(updatedState)
       }
     } catch (error) {
       console.error("Error updating demo progress:", error)
@@ -363,7 +351,6 @@ export default function PostQuizFunnelPage() {
       if (response.ok) {
         const { funnelState: updatedState } = await response.json()
         setFunnelState(updatedState)
-        saveFunnelState(updatedState)
       }
     } catch (error) {
       console.error("Error signing member agreement:", error)
@@ -392,7 +379,6 @@ export default function PostQuizFunnelPage() {
       if (response.ok) {
         const { funnelState: updatedState } = await response.json()
         setFunnelState(updatedState)
-        saveFunnelState(updatedState)
       }
     } catch (error) {
       console.error("Error selecting bundle:", error)

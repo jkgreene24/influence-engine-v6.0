@@ -852,10 +852,20 @@ export default function QuickQuiz() {
       quizCompletedAt: new Date().toISOString(),
     };
 
-    console.log("Saving user data to localStorage:", updatedUser);
+    console.log("Saving user data to database:", updatedUser);
     localStorage.setItem("current_influence_user", JSON.stringify(updatedUser));
     console.log("Redirecting to post-quiz-funnel");
-    router.push("/post-quiz-funnel");
+    
+    // Pass user data via URL parameters
+    const params = new URLSearchParams({
+      userId: updatedUser.id?.toString() || '0',
+      email: updatedUser.email || '',
+      style: result.primary,
+      secondaryStyle: result.secondary || '',
+      isBlend: result.isBlend?.toString() || 'false'
+    });
+    
+    router.push(`/post-quiz-funnel?${params.toString()}`);
   };
 
   const getResultDisplay = () => {

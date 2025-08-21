@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { automationService } from "@/lib/utils/mock-automation"
-import { clearFunnelState, INITIAL_FUNNEL_STATE, saveFunnelState } from "@/lib/utils/funnel-state"
 
 export default function TestFunnelPage() {
   const [events, setEvents] = useState<any[]>([])
@@ -27,23 +26,8 @@ export default function TestFunnelPage() {
       role: "Manager"
     }
 
-    // Create test funnel state
-    const testFunnelState = {
-      ...INITIAL_FUNNEL_STATE,
-      userData: testUserData,
-      sourceTracking: {
-        source: "Social Media",
-        socialPlatform: "LinkedIn",
-        utmSource: "linkedin",
-        utmMedium: "social",
-        utmCampaign: "influence_test"
-      }
-    }
-
-    // Save to localStorage
-    saveFunnelState(testFunnelState)
-
     console.log("🧪 Starting test funnel...")
+    console.log("🧪 Test user data:", testUserData)
     
     // Simulate the complete funnel flow
     const steps = [
@@ -76,7 +60,6 @@ export default function TestFunnelPage() {
 
   const clearTest = () => {
     automationService.clearEvents()
-    clearFunnelState()
     setEvents([])
   }
 

@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Mail, Phone, User, CheckCircle, Star, Zap, Users, Target, Navigation, Anchor, Link } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { INITIAL_FUNNEL_STATE, saveFunnelState, type SourceTracking } from "@/lib/utils/funnel-state"
 import { automationHelpers } from "@/lib/utils/mock-automation"
 
 export default function ContactPage() {
@@ -30,26 +29,15 @@ export default function ContactPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Initialize funnel state and capture URL parameters
+  // Capture URL parameters for source tracking (no longer saving to localStorage)
   useEffect(() => {
-    const funnelState = { ...INITIAL_FUNNEL_STATE }
-    
-    // Capture UTM parameters
-    const utmSource = searchParams.get('utm_source')
-    const utmMedium = searchParams.get('utm_medium')
-    const utmCampaign = searchParams.get('utm_campaign')
-    const src = searchParams.get('src')
-    
-    // Set source tracking
-    const sourceTracking: SourceTracking = {
-      utmSource: utmSource || undefined,
-      utmMedium: utmMedium || undefined,
-      utmCampaign: utmCampaign || undefined,
-      srcBook: src === 'book',
-    }
-    
-    funnelState.sourceTracking = sourceTracking
-    saveFunnelState(funnelState)
+    // We'll pass these parameters directly to the quiz when needed
+    console.log("URL parameters captured:", {
+      utmSource: searchParams.get('utm_source'),
+      utmMedium: searchParams.get('utm_medium'),
+      utmCampaign: searchParams.get('utm_campaign'),
+      src: searchParams.get('src')
+    })
   }, [searchParams])
 
   const formatPhoneNumber = (value: string) => {
@@ -120,58 +108,33 @@ export default function ContactPage() {
     }
 
     try {
-      // Update funnel state with user data and source tracking
-      const funnelState = { ...INITIAL_FUNNEL_STATE }
-      funnelState.userData = {
+      // Prepare user data for insertion
+      const userData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
         phone: phoneDigits,
         company: company.trim(),
         role: role.trim(),
+        createdAt: new Date().toISOString(),
+        emailVerified: false,
+        quizCompleted: false,
+        demoWatched: false,
+        ndaSigned: false,
+        // Source tracking data
+        sourceTracking: {
+          source,
+          reiaName: source === 'REIA Event' ? reiaName : undefined,
+          socialPlatform: source === 'Social Media' ? socialPlatform : undefined,
+          referrerName: source === 'Referral' ? referrerName : undefined,
+          wordOfMouth: source === 'Word of Mouth' ? wordOfMouth : undefined,
+          otherSource: source === 'Other' ? otherSource : undefined,
+          utmSource: searchParams.get('utm_source'),
+          utmMedium: searchParams.get('utm_medium'),
+          utmCampaign: searchParams.get('utm_campaign'),
+          srcBook: source === 'Book – Influence First: Why Your Deals Are Dying (and How to Fix It)' ? true : false,
+        },
       }
-      
-      // Add source tracking data
-      funnelState.sourceTracking = {
-        ...funnelState.sourceTracking,
-        source,
-        reiaName: source === 'REIA Event' ? reiaName : undefined,
-        socialPlatform: source === 'Social Media' ? socialPlatform : undefined,
-        referrerName: source === 'Referral' ? referrerName : undefined,
-        wordOfMouth: source === 'Word of Mouth' ? wordOfMouth : undefined,
-        otherSource: source === 'Other' ? otherSource : undefined,
-        srcBook: source === 'Book – Influence First: Why Your Deals Are Dying (and How to Fix It)' ? true : false,
-      }
-      
-      saveFunnelState(funnelState)
-
-             // Save user data
-       const userData = {
-         firstName: firstName.trim(),
-         lastName: lastName.trim(),
-         email: email.trim(),
-         phone: phoneDigits,
-         company: company.trim(),
-         role: role.trim(),
-         createdAt: new Date().toISOString(),
-         emailVerified: false,
-         quizCompleted: false,
-         demoWatched: false,
-         ndaSigned: false,
-         // Source tracking data as single object
-         sourceTracking: {
-           source: funnelState.sourceTracking.source,
-           reiaName: funnelState.sourceTracking.reiaName,
-           socialPlatform: funnelState.sourceTracking.socialPlatform,
-           referrerName: funnelState.sourceTracking.referrerName,
-           wordOfMouth: funnelState.sourceTracking.wordOfMouth,
-           otherSource: funnelState.sourceTracking.otherSource,
-           utmSource: funnelState.sourceTracking.utmSource,
-           utmMedium: funnelState.sourceTracking.utmMedium,
-           utmCampaign: funnelState.sourceTracking.utmCampaign,
-           srcBook: funnelState.sourceTracking.srcBook,
-         },
-       }
 
       console.log("Inserting new user:", userData)
       const insertResponse = await fetch("/api/insert-user", {
@@ -198,7 +161,7 @@ export default function ContactPage() {
 
       // Tag lead source in automation
       try {
-        await automationHelpers.tagLeadSource(email.trim(), funnelState.sourceTracking)
+        await automationHelpers.tagLeadSource(email.trim(), userData.sourceTracking)
       } catch (error) {
         console.error('Failed to tag lead source:', error)
       }
