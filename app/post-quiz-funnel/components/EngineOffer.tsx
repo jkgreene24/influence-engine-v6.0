@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PostQuizFunnelState } from "@/lib/utils/post-quiz-funnel-state"
@@ -21,6 +22,44 @@ export default function EngineOffer({
   onDemoProgress, 
   onMemberAgreement 
 }: EngineOfferProps) {
+  const progressTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastReportedProgress = useRef<number>(0)
+
+  const debouncedProgressHandler = useCallback((percentage: number) => {
+    // Enhanced validation before processing
+    if (typeof percentage !== 'number' || 
+        !isFinite(percentage) || 
+        percentage < 0 || 
+        percentage > 100) {
+      console.warn("Invalid percentage in debouncedProgressHandler:", percentage)
+      return
+    }
+    
+    // Only report progress if it's significantly different (more than 5% change)
+    if (Math.abs(percentage - lastReportedProgress.current) >= 5) {
+      // Clear any existing timeout
+      if (progressTimeoutRef.current) {
+        clearTimeout(progressTimeoutRef.current)
+      }
+      
+      // Set a new timeout to report progress after 1 second of no changes
+      progressTimeoutRef.current = setTimeout(() => {
+        console.log("Reporting progress after debounce:", percentage.toFixed(1) + "%")
+        onDemoProgress(percentage)
+        lastReportedProgress.current = percentage
+      }, 1000)
+    }
+  }, [onDemoProgress])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (progressTimeoutRef.current) {
+        clearTimeout(progressTimeoutRef.current)
+      }
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-[#92278F] to-[#a83399] text-white py-12">
@@ -130,8 +169,20 @@ export default function EngineOffer({
                 controls
                 onTimeUpdate={(e) => {
                   const video = e.target as HTMLVideoElement
-                  const percentage = (video.currentTime / video.duration) * 100
-                  onDemoProgress(percentage)
+                  // Enhanced validation before calculating percentage
+                  if (video.duration && 
+                      isFinite(video.duration) && 
+                      video.duration > 0 && 
+                      isFinite(video.currentTime) && 
+                      video.currentTime >= 0) {
+                    const percentage = (video.currentTime / video.duration) * 100
+                    // Double-check the calculated percentage is valid
+                    if (isFinite(percentage) && percentage >= 0 && percentage <= 100) {
+                      debouncedProgressHandler(percentage)
+                    } else {
+                      console.warn("Invalid calculated percentage:", percentage, "from currentTime:", video.currentTime, "duration:", video.duration)
+                    }
+                  }
                 }}
               >
                 <source src="/assets/funnel/videos/influence-engine-demo.mp4" type="video/mp4" />

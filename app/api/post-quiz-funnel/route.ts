@@ -26,19 +26,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing user data" }, { status: 400 });
     }
     
-    // Load current funnel state from database
-    let funnelState = await loadFunnelStateFromDatabase(supabase, userId);
-    
-    if (!funnelState) {
-      // Create initial funnel state if none exists
-      funnelState = createInitialFunnelState(
-        userId,
-        userEmail,
-        influenceStyle || 'catalyst',
-        secondaryStyle
-      );
-      await saveFunnelStateToDatabase(supabase, funnelState);
-    }
+      // Load current funnel state from database
+  let funnelState = await loadFunnelStateFromDatabase(supabase, userId, userEmail, influenceStyle, secondaryStyle);
+  
+  if (!funnelState) {
+    // Create initial funnel state if none exists
+    funnelState = createInitialFunnelState(
+      userId,
+      userEmail,
+      influenceStyle || 'catalyst',
+      secondaryStyle
+    );
+    await saveFunnelStateToDatabase(supabase, funnelState);
+  }
     
     // Handle different actions
     switch (action) {
@@ -55,6 +55,9 @@ export async function POST(request: Request) {
         break;
         
       case 'update_demo_progress':
+        if (!data || typeof data.watchPercentage !== 'number' || data.watchPercentage < 0 || data.watchPercentage > 100) {
+          return NextResponse.json({ error: "Invalid watch percentage" }, { status: 400 });
+        }
         funnelState = updateDemoProgress(funnelState, data.watchPercentage);
         await saveFunnelStateToDatabase(supabase, funnelState);
         await updateDemoProgressInDatabase(supabase, userId, data.watchPercentage);
@@ -135,7 +138,13 @@ export async function POST(request: Request) {
 }
 
 // Database helper functions
-async function loadFunnelStateFromDatabase(supabase: any, userId: number): Promise<PostQuizFunnelState | null> {
+async function loadFunnelStateFromDatabase(
+  supabase: any, 
+  userId: number, 
+  userEmail: string, 
+  influenceStyle: string, 
+  secondaryStyle?: string
+): Promise<PostQuizFunnelState | null> {
   const { data: funnelSteps } = await supabase
     .from('funnel_steps')
     .select('*')
@@ -190,11 +199,11 @@ async function loadFunnelStateFromDatabase(supabase: any, userId: number): Promi
   // you'd want to store the full state as JSONB in the database
   return {
     userId,
-    userEmail: '', // Will be filled from user profile
+    userEmail: userEmail, // Use provided user email
     currentStep: latestStep.step_name as any,
-    influenceStyle: '',
-    secondaryStyle: undefined,
-    isBlend: false,
+    influenceStyle: influenceStyle, // Use provided influence style
+    secondaryStyle: secondaryStyle, // Use provided secondary style
+    isBlend: !!secondaryStyle, // Set isBlend based on whether secondaryStyle exists
     products: productStates,
     demo: {
       watched: false,

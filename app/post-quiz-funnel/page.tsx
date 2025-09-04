@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { 
   PostQuizFunnelState, 
@@ -19,6 +19,9 @@ export default function PostQuizFunnelPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const searchParams = useSearchParams()
+  
+  // Use ref to always get the current state (prevents closure issues)
+  const currentStateRef = useRef<PostQuizFunnelState | null>(null)
 
   useEffect(() => {
     initializeFunnel()
@@ -72,9 +75,10 @@ export default function PostQuizFunnelPage() {
         isBlend: newState.isBlend
       })
       
-      setFunnelState(newState)
-      setLoading(false)
-      console.log("=== FUNNEL INITIALIZATION COMPLETE ===")
+             setFunnelState(newState)
+       currentStateRef.current = newState
+       setLoading(false)
+       console.log("=== FUNNEL INITIALIZATION COMPLETE ===")
     } catch (error) {
       console.error("Error initializing funnel:", error)
       router.push("/quick-quiz")
@@ -86,6 +90,7 @@ export default function PostQuizFunnelPage() {
 
     const updatedState = { ...funnelState, ...newState }
     setFunnelState(updatedState)
+    currentStateRef.current = updatedState
 
     // Sync with database
     try {
@@ -108,17 +113,32 @@ export default function PostQuizFunnelPage() {
     if (!funnelState) return
 
     console.log("Selecting product:", productType)
+    console.log("Current funnel state before update:", {
+      userId: funnelState.userId,
+      userEmail: funnelState.userEmail,
+      influenceStyle: funnelState.influenceStyle,
+      secondaryStyle: funnelState.secondaryStyle,
+      isBlend: funnelState.isBlend
+    })
 
-    // Handle product selection locally
-    const updatedState = { ...funnelState }
-    
-    // Update product state
-    updatedState.products[productType] = {
-      ...updatedState.products[productType],
-      selected: true,
-      declined: false,
-      selectedAt: new Date().toISOString(),
+    // Handle product selection locally - ensure we preserve ALL existing state
+    const updatedState = {
+      ...funnelState,
+      products: {
+        ...funnelState.products,
+        [productType]: {
+          ...funnelState.products[productType],
+          selected: true,
+          declined: false,
+          selectedAt: new Date().toISOString(),
+        }
+      },
+      cart: [...funnelState.cart], // Deep clone the cart array
+      tags: [...funnelState.tags],
+      lastUpdatedAt: new Date().toISOString()
     }
+    
+    console.log("Cart before adding item:", updatedState.cart)
     
     // Add to cart with proper Stripe configuration
     const cartItem = {
@@ -134,12 +154,15 @@ export default function PostQuizFunnelPage() {
                     productType === 'book' ? process.env.STRIPE_BOOK_PRICE_ID : process.env.STRIPE_BUNDLE_ENGINE_PRICE_ID,
       metadata: {
         productType: productType,
-        influenceStyle: funnelState.influenceStyle,
-        isBlend: funnelState.isBlend,
-        secondaryStyle: funnelState.secondaryStyle
+        influenceStyle: updatedState.influenceStyle,
+        isBlend: updatedState.isBlend,
+        secondaryStyle: updatedState.secondaryStyle
       }
     }
+    
+    console.log("Adding cart item:", cartItem)
     updatedState.cart.push(cartItem)
+    console.log("Cart after adding item:", updatedState.cart)
     
     // Add tag
     updatedState.tags.push(`PROD_${productType.toUpperCase()}`)
@@ -147,10 +170,16 @@ export default function PostQuizFunnelPage() {
     // Remove decline tag if it exists
     updatedState.tags = updatedState.tags.filter(tag => tag !== `NO_${productType.toUpperCase()}`)
     
-    updatedState.lastUpdatedAt = new Date().toISOString()
-    
     console.log("Updated state after product selection:", updatedState)
+    console.log("State integrity check:", {
+      userId: updatedState.userId,
+      userEmail: updatedState.userEmail,
+      influenceStyle: updatedState.influenceStyle,
+      secondaryStyle: updatedState.secondaryStyle,
+      isBlend: updatedState.isBlend
+    })
     setFunnelState(updatedState)
+    currentStateRef.current = updatedState
 
     // Try to sync with database in background
     try {
@@ -162,10 +191,10 @@ export default function PostQuizFunnelPage() {
         body: JSON.stringify({
           action: "select_product",
           data: { productType },
-          userId: funnelState.userId,
-          userEmail: funnelState.userEmail,
-          influenceStyle: funnelState.influenceStyle,
-          secondaryStyle: funnelState.secondaryStyle,
+          userId: updatedState.userId,
+          userEmail: updatedState.userEmail,
+          influenceStyle: updatedState.influenceStyle,
+          secondaryStyle: updatedState.secondaryStyle,
         }),
       })
 
@@ -182,15 +211,21 @@ export default function PostQuizFunnelPage() {
 
     console.log("Declining product:", productType)
 
-    // Handle product decline locally
-    const updatedState = { ...funnelState }
-    
-    // Update product state
-    updatedState.products[productType] = {
-      ...updatedState.products[productType],
-      selected: false,
-      declined: true,
-      declinedAt: new Date().toISOString(),
+    // Handle product decline locally - ensure we preserve ALL existing state
+    const updatedState = {
+      ...funnelState,
+      products: {
+        ...funnelState.products,
+        [productType]: {
+          ...funnelState.products[productType],
+          selected: false,
+          declined: true,
+          declinedAt: new Date().toISOString(),
+        }
+      },
+      cart: [...funnelState.cart],
+      tags: [...funnelState.tags],
+      lastUpdatedAt: new Date().toISOString()
     }
     
     // Remove from cart
@@ -204,10 +239,9 @@ export default function PostQuizFunnelPage() {
     // Remove selection tag if it exists
     updatedState.tags = updatedState.tags.filter(tag => tag !== `PROD_${productType.toUpperCase()}`)
     
-    updatedState.lastUpdatedAt = new Date().toISOString()
-    
     console.log("Updated state after product decline:", updatedState)
     setFunnelState(updatedState)
+    currentStateRef.current = updatedState
 
     // Try to sync with database in background
     try {
@@ -219,10 +253,10 @@ export default function PostQuizFunnelPage() {
         body: JSON.stringify({
           action: "decline_product",
           data: { productType },
-          userId: funnelState.userId,
-          userEmail: funnelState.userEmail,
-          influenceStyle: funnelState.influenceStyle,
-          secondaryStyle: funnelState.secondaryStyle,
+          userId: updatedState.userId,
+          userEmail: updatedState.userEmail,
+          influenceStyle: updatedState.influenceStyle,
+          secondaryStyle: updatedState.secondaryStyle,
         }),
       })
 
@@ -238,66 +272,103 @@ export default function PostQuizFunnelPage() {
     if (!funnelState) return
 
     console.log("Moving to next step from:", funnelState.currentStep)
-
-    // For now, handle step transitions locally to avoid database issues
-    let nextStep: string
-    switch (funnelState.currentStep) {
-      case 'snapshot':
-        nextStep = 'toolkit'
-        // Add style tag when moving from snapshot to toolkit
-        funnelState.tags.push(`STYLE_${funnelState.influenceStyle.toUpperCase()}`)
-        break
-      case 'toolkit':
-        nextStep = 'engine'
-        break
-      case 'engine':
-        nextStep = 'book'
-        break
-      case 'book':
-        nextStep = 'bundle'
-        break
-      case 'bundle':
-        nextStep = 'checkout'
-        break
-      case 'checkout':
-        nextStep = 'success'
-        break
-      default:
-        nextStep = 'snapshot'
-    }
-    console.log("Next step should be:", nextStep)
+    console.log("Current cart before step transition:", funnelState.cart)
     
-    const updatedState = {
-      ...funnelState,
-      currentStep: nextStep as any,
-      lastUpdatedAt: new Date().toISOString(),
-    }
-    
-    // Mark current step as completed and next step as started
-    updatedState.tags.push(`${funnelState.currentStep.toUpperCase()}_COMPLETED`)
-    updatedState.tags.push(`${nextStep.toUpperCase()}_STARTED`)
-    
-    // Mark products as offered when reaching their step
-    switch (nextStep) {
-      case 'toolkit':
-        updatedState.products.toolkit.offered = true
-        break
-      case 'engine':
-        updatedState.products.engine.offered = true
-        break
-      case 'book':
-        updatedState.products.book.offered = true
-        break
-      case 'bundle':
-        updatedState.products.bundle.offered = true
-        break
-    }
-    
-    console.log("Updated funnel state to:", updatedState.currentStep)
-    console.log("Current tags:", updatedState.tags)
-    setFunnelState(updatedState)
-
-    // Try to sync with database in background (don't block UI)
+    // Use functional state update to ensure we have the latest state
+    setFunnelState(currentState => {
+      if (!currentState) return currentState
+      
+      console.log("Functional update - current cart:", currentState.cart)
+      
+      // For now, handle step transitions locally to avoid database issues
+      let nextStep: string
+      switch (currentState.currentStep) {
+        case 'snapshot':
+          nextStep = 'toolkit'
+          // Add style tag when moving from snapshot to toolkit
+          break
+        case 'toolkit':
+          nextStep = 'engine'
+          break
+        case 'engine':
+          nextStep = 'book'
+          break
+        case 'book':
+          nextStep = 'bundle'
+          break
+        case 'bundle':
+          nextStep = 'checkout'
+          break
+        case 'checkout':
+          nextStep = 'success'
+          break
+        default:
+          nextStep = 'snapshot'
+      }
+      console.log("Next step should be:", nextStep)
+      
+      const updatedState = {
+        ...currentState,
+        currentStep: nextStep as any,
+        products: {
+          ...currentState.products,
+          toolkit: {
+            ...currentState.products.toolkit,
+            offered: nextStep === 'toolkit' ? true : currentState.products.toolkit.offered
+          },
+          engine: {
+            ...currentState.products.engine,
+            offered: nextStep === 'engine' ? true : currentState.products.engine.offered
+          },
+          book: {
+            ...currentState.products.book,
+            offered: nextStep === 'book' ? true : currentState.products.book.offered
+          },
+          bundle: {
+            ...currentState.products.bundle,
+            offered: nextStep === 'bundle' ? true : currentState.products.bundle.offered
+          }
+        },
+        cart: [...currentState.cart], // Ensure cart is preserved
+        tags: [...currentState.tags],
+        lastUpdatedAt: new Date().toISOString(),
+      }
+      
+      console.log("Cart contents in functional update:", updatedState.cart)
+      console.log("Cart length in updatedState:", updatedState.cart.length)
+      
+      // Mark current step as completed and next step as started
+      updatedState.tags.push(`${currentState.currentStep.toUpperCase()}_COMPLETED`)
+      updatedState.tags.push(`${nextStep.toUpperCase()}_STARTED`)
+      
+      // Add style tag when moving from snapshot to toolkit
+      if (currentState.currentStep === 'snapshot' && nextStep === 'toolkit') {
+        updatedState.tags.push(`STYLE_${updatedState.influenceStyle.toUpperCase()}`)
+      }
+      
+      console.log("Updated funnel state to:", updatedState.currentStep)
+      console.log("Current tags:", updatedState.tags)
+      console.log("Cart contents:", updatedState.cart)
+      console.log("Cart length before setState:", updatedState.cart.length)
+      console.log("State integrity check:", {
+        userId: updatedState.userId,
+        userEmail: updatedState.userEmail,
+        influenceStyle: updatedState.influenceStyle,
+        secondaryStyle: updatedState.secondaryStyle,
+        isBlend: updatedState.isBlend
+      })
+      
+      // Sync with database in background (don't block UI)
+      syncStepTransitionWithDatabase(updatedState)
+      
+      // Update the ref with the new state
+      currentStateRef.current = updatedState
+      
+      return updatedState
+    })
+  }
+  
+  const syncStepTransitionWithDatabase = async (updatedState: PostQuizFunnelState) => {
     try {
       const response = await fetch("/api/post-quiz-funnel", {
         method: "POST",
@@ -307,10 +378,10 @@ export default function PostQuizFunnelPage() {
         body: JSON.stringify({
           action: "move_to_next_step",
           data: {},
-          userId: funnelState.userId,
-          userEmail: funnelState.userEmail,
-          influenceStyle: funnelState.influenceStyle,
-          secondaryStyle: funnelState.secondaryStyle,
+          userId: updatedState.userId,
+          userEmail: updatedState.userEmail,
+          influenceStyle: updatedState.influenceStyle,
+          secondaryStyle: updatedState.secondaryStyle,
         }),
       })
 
@@ -322,32 +393,87 @@ export default function PostQuizFunnelPage() {
     }
   }
 
+
+
   const handleDemoProgress = async (watchPercentage: number) => {
-    if (!funnelState) return
-
-    try {
-      const response = await fetch("/api/post-quiz-funnel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "update_demo_progress",
-          data: { watchPercentage },
-          userId: funnelState.userId,
-          userEmail: funnelState.userEmail,
-          influenceStyle: funnelState.influenceStyle,
-          secondaryStyle: funnelState.secondaryStyle,
-        }),
-      })
-
-      if (response.ok) {
-        const { funnelState: updatedState } = await response.json()
-        setFunnelState(updatedState)
-      }
-    } catch (error) {
-      console.error("Error updating demo progress:", error)
+    // Get current state from ref to avoid closure issues
+    const currentState = currentStateRef.current
+    if (!currentState) {
+      console.warn("No current state available, skipping demo progress update")
+      return
     }
+
+    // Add comprehensive validation before making the API call
+    if (typeof watchPercentage !== 'number' || 
+        !isFinite(watchPercentage) || 
+        watchPercentage < 0 || 
+        watchPercentage > 100) {
+      console.warn("Invalid watch percentage:", watchPercentage, "Skipping API call")
+      return
+    }
+
+    // Check if currentState has valid user data (prevent corruption issues)
+    if (!currentState.userId || 
+        !currentState.userEmail || 
+        !currentState.influenceStyle) {
+      console.warn("Funnel state corrupted, skipping demo progress update:", {
+        userId: currentState.userId,
+        userEmail: currentState.userEmail,
+        influenceStyle: currentState.influenceStyle
+      })
+      console.warn("Current ref state:", currentStateRef.current)
+      console.warn("Current funnelState:", funnelState)
+      return
+    }
+
+    // Only log significant progress changes to reduce noise
+    console.log("Updating demo progress:", watchPercentage.toFixed(1) + "%")
+
+    // Make API call in background (don't block UI)
+    fetch("/api/post-quiz-funnel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "update_demo_progress",
+        data: { watchPercentage },
+        userId: currentState.userId,
+        userEmail: currentState.userEmail,
+        influenceStyle: currentState.influenceStyle,
+        secondaryStyle: currentState.secondaryStyle,
+      }),
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json()
+      } else if (response.status === 400) {
+        // Log the response body to see what the API is rejecting
+        return response.text().then(errorBody => {
+          console.warn("Demo progress update rejected (400):", errorBody)
+          throw new Error("400 Bad Request")
+        })
+      } else {
+        console.error("Error updating demo progress:", response.status, response.statusText)
+        throw new Error(`HTTP ${response.status}`)
+      }
+    })
+    .then(data => {
+      if (data.funnelState) {
+        console.log("API returned funnel state:", data.funnelState)
+        console.log("State integrity check before update:", {
+          userId: data.funnelState.userId,
+          userEmail: data.funnelState.userEmail,
+          influenceStyle: data.funnelState.influenceStyle
+        })
+        setFunnelState(data.funnelState)
+        currentStateRef.current = data.funnelState
+        console.log("Ref updated with new state")
+      }
+    })
+    .catch(error => {
+      console.error("Error updating demo progress:", error)
+    })
   }
 
   const handleMemberAgreement = async () => {
@@ -372,6 +498,7 @@ export default function PostQuizFunnelPage() {
       if (response.ok) {
         const { funnelState: updatedState } = await response.json()
         setFunnelState(updatedState)
+        currentStateRef.current = updatedState
       }
     } catch (error) {
       console.error("Error signing member agreement:", error)
@@ -446,6 +573,7 @@ export default function PostQuizFunnelPage() {
     
     console.log("Updated state after bundle selection:", updatedState)
     setFunnelState(updatedState)
+    currentStateRef.current = updatedState
 
     // Also move to next step (checkout) to preserve cart changes
     const finalState = {
@@ -460,6 +588,7 @@ export default function PostQuizFunnelPage() {
     
     console.log("Moving directly to checkout with bundle cart:", finalState.cart)
     setFunnelState(finalState)
+    currentStateRef.current = finalState
   }
 
   if (loading) {
