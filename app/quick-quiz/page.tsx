@@ -720,11 +720,13 @@ export default function QuickQuiz() {
           setCurrentQuestionFlow([...currentQuestionFlow, q10Randomized]);
           setQuizState(prev => ({ ...prev, currentQuestionIndex: nextIndex }));
         } else {
-          // Calculate final result (including Q10 if it was answered)
-          const finalResult = calculateResult(newScores, newAnswers["Q10"]);
-          setResult(finalResult);
-          // Save analytics data including Q10 before updating database
-          updateQuizResultsInDatabase(finalResult, newAnalyticsData);
+              // Calculate final result (including Q10 if it was answered)
+    console.log("Final scores before calculating result:", newScores);
+    const finalResult = calculateResult(newScores, newAnswers["Q10"]);
+    console.log("Final calculated result:", finalResult);
+    setResult(finalResult);
+    // Save analytics data including Q10 before updating database
+    updateQuizResultsInDatabase(finalResult, newAnalyticsData);
         }
       } else {
         setQuizState(prev => ({ ...prev, currentQuestionIndex: nextIndex }));
@@ -833,6 +835,14 @@ export default function QuickQuiz() {
 
   const saveUserData = async () => {
     if (!result) return;
+    
+    // Debug logging to see what we're working with
+    console.log("saveUserData - result object:", result);
+    console.log("saveUserData - result details:", {
+      primary: result.primary,
+      secondary: result.secondary,
+      isBlend: result.isBlend
+    });
 
     let currentUser = JSON.parse(localStorage.getItem("current_influence_user") || "null");
     
@@ -857,6 +867,7 @@ export default function QuickQuiz() {
     console.log("Redirecting to post-quiz-funnel");
     
     // Pass user data via URL parameters
+    // For blends, we need to ensure both styles are properly passed
     const params = new URLSearchParams({
       userId: updatedUser.id?.toString() || '0',
       email: updatedUser.email || '',
@@ -865,11 +876,31 @@ export default function QuickQuiz() {
       isBlend: result.isBlend?.toString() || 'false'
     });
     
+    // Log the parameters being passed for debugging
+    console.log("URL parameters being passed:", {
+      style: result.primary,
+      secondaryStyle: result.secondary || '',
+      isBlend: result.isBlend
+    });
+    
+    // Also log the full URL being generated
+    const fullUrl = `/post-quiz-funnel?${params.toString()}`;
+    console.log("Full redirect URL:", fullUrl);
+    
     router.push(`/post-quiz-funnel?${params.toString()}`);
   };
 
   const getResultDisplay = () => {
     if (!result) return null;
+    
+    // Debug logging to see what the result object contains
+    console.log("getResultDisplay - result object:", result);
+    console.log("getResultDisplay - result details:", {
+      primary: result.primary,
+      secondary: result.secondary,
+      isBlend: result.isBlend,
+      scores: result.scores
+    });
 
     const primaryStyle = styleDescriptions[result.primary as keyof typeof styleDescriptions];
     const secondaryStyle = result.secondary

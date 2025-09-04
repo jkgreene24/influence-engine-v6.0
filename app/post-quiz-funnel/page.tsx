@@ -35,7 +35,14 @@ export default function PostQuizFunnelPage() {
       const secondaryStyle = searchParams.get('secondaryStyle') || ''
       const isBlend = searchParams.get('isBlend') === 'true'
       
-      console.log("URL params:", { userId, userEmail, influenceStyle, secondaryStyle, isBlend })
+      console.log("URL params received:", { userId, userEmail, influenceStyle, secondaryStyle, isBlend })
+      console.log("Raw URL params:", {
+        userId: searchParams.get('userId'),
+        email: searchParams.get('email'),
+        style: searchParams.get('style'),
+        secondaryStyle: searchParams.get('secondaryStyle'),
+        isBlend: searchParams.get('isBlend')
+      })
       
       if (!userEmail || !influenceStyle) {
         console.log("Missing required user data, redirecting to quiz")
@@ -59,6 +66,11 @@ export default function PostQuizFunnelPage() {
       }
       
       console.log("Created initial funnel state:", newState)
+      console.log("Funnel state details:", {
+        influenceStyle: newState.influenceStyle,
+        secondaryStyle: newState.secondaryStyle,
+        isBlend: newState.isBlend
+      })
       
       setFunnelState(newState)
       setLoading(false)

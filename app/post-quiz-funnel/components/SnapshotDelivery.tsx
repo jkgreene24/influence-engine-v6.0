@@ -26,22 +26,74 @@ export default function SnapshotDelivery({ funnelState, onNext }: SnapshotDelive
       console.log("Funnel state:", funnelState)
       console.log("Fetching snapshot profile for style:", funnelState.influenceStyle)
       
-      // Try to fetch the profile from the database
-      const url = `/api/get-influence-profile?style=${funnelState.influenceStyle.toLowerCase()}`
-      console.log("Fetching from URL:", url)
+      let profileData = null
       
-      const response = await fetch(url)
-      console.log("API response status:", response.status)
-      
-      const data = await response.json()
-      console.log("API response data:", data)
-      
-      if (response.ok) {
-        console.log("Snapshot profile found:", data)
-        setDbProfile(data)
+      if (isBlend && secondaryStyle) {
+        // For blends, try to fetch a blend-specific profile first
+        console.log("Fetching blend profile for:", `${funnelState.influenceStyle}-${secondaryStyle}`)
+        const blendUrl = `/api/get-influence-profile?style=${funnelState.influenceStyle.toLowerCase()}-${secondaryStyle.toLowerCase()}`
+        console.log("Trying blend URL:", blendUrl)
+        
+        try {
+          const blendResponse = await fetch(blendUrl)
+          if (blendResponse.ok) {
+            const blendData = await blendResponse.json()
+            console.log("Blend profile found:", blendData)
+            profileData = blendData
+          } else {
+            console.log("No blend profile found, will combine individual profiles")
+          }
+        } catch (error) {
+          console.log("Error fetching blend profile, will combine individual profiles")
+        }
+        
+        // If no blend profile found, fetch both individual profiles
+        if (!profileData) {
+          console.log("Fetching individual profiles for blend")
+          const [primaryResponse, secondaryResponse] = await Promise.all([
+            fetch(`/api/get-influence-profile?style=${funnelState.influenceStyle.toLowerCase()}`),
+            fetch(`/api/get-influence-profile?style=${secondaryStyle.toLowerCase()}`)
+          ])
+          
+          if (primaryResponse.ok && secondaryResponse.ok) {
+            const [primaryData, secondaryData] = await Promise.all([
+              primaryResponse.json(),
+              secondaryResponse.json()
+            ])
+            
+            // Create a combined blend profile
+            profileData = {
+              ...primaryData,
+              influence_style: `${funnelState.influenceStyle}-${secondaryStyle}`,
+              snapshot_profile: `🧭 ${getStyleDisplayName(funnelState.influenceStyle)}-${getStyleDisplayName(secondaryStyle)} Blend Snapshot\n\n🎯 Your Superpower: You combine the strategic vision of a ${getStyleDisplayName(funnelState.influenceStyle)} with the dynamic energy of a ${getStyleDisplayName(secondaryStyle)}.\n\n🔍 Key Blind Spot: You might overthink situations where quick action is needed, or rush into action without proper planning.\n\n🚀 Quick Action: When facing a decision, pause for 30 seconds to assess if you need more strategy or more momentum.`,
+              full_profile: `🧭 ${getStyleDisplayName(funnelState.influenceStyle)}-${getStyleDisplayName(secondaryStyle)} Blend | Complete Influence Style Toolkit\n\nThis is your comprehensive guide to mastering your unique blend of ${getStyleDisplayName(funnelState.influenceStyle)} and ${getStyleDisplayName(secondaryStyle)} influence styles.`
+            }
+            console.log("Created combined blend profile:", profileData)
+          }
+        }
       } else {
-        console.log("No profile found in database, using fallback")
-        console.log("Error response:", data)
+        // For single styles, fetch the individual profile
+        const url = `/api/get-influence-profile?style=${funnelState.influenceStyle.toLowerCase()}`
+        console.log("Fetching from URL:", url)
+        
+        const response = await fetch(url)
+        console.log("API response status:", response.status)
+        
+        const data = await response.json()
+        console.log("API response data:", data)
+        
+        if (response.ok) {
+          console.log("Snapshot profile found:", data)
+          profileData = data
+        } else {
+          console.log("No profile found in database, using fallback")
+          console.log("Error response:", data)
+        }
+      }
+      
+      if (profileData) {
+        setDbProfile(profileData)
+      } else {
         // If no profile found, we'll use the basic style info
         setDbProfile(null)
       }
@@ -193,7 +245,10 @@ export default function SnapshotDelivery({ funnelState, onNext }: SnapshotDelive
                   }
                 </h2>
                 <p className="text-lg text-gray-700">
-                  {getStyleDescription(primaryStyle)}
+                  {isBlend && secondaryStyle 
+                    ? `You combine the ${getStyleDescription(primaryStyle).toLowerCase()} with the ${getStyleDescription(secondaryStyle).toLowerCase()} This gives you a unique ability to adapt your approach based on the situation.`
+                    : getStyleDescription(primaryStyle)
+                  }
                 </p>
               </div>
             </div>

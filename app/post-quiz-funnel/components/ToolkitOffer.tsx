@@ -13,6 +13,13 @@ interface ToolkitOfferProps {
 }
 
 export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext }: ToolkitOfferProps) {
+  // Debug logging to see what values we're getting
+  console.log("ToolkitOffer - funnelState:", {
+    influenceStyle: funnelState.influenceStyle,
+    secondaryStyle: funnelState.secondaryStyle,
+    isBlend: funnelState.isBlend
+  });
+
   const getStyleDisplayName = (style: string) => {
     const styleNames: Record<string, string> = {
       catalyst: "Catalyst",
@@ -25,12 +32,22 @@ export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext 
   }
 
   const getToolkitTitle = () => {
+    console.log("getToolkitTitle - checking blend logic:", {
+      isBlend: funnelState.isBlend,
+      secondaryStyle: funnelState.secondaryStyle,
+      influenceStyle: funnelState.influenceStyle
+    });
+    
     if (funnelState.isBlend && funnelState.secondaryStyle) {
       const primaryStyle = getStyleDisplayName(funnelState.influenceStyle)
       const secondaryStyle = getStyleDisplayName(funnelState.secondaryStyle)
+      console.log("Creating blend title:", { primaryStyle, secondaryStyle });
       return `${primaryStyle} + ${secondaryStyle} Blend Toolkit`
     }
-    return `${getStyleDisplayName(funnelState.influenceStyle)} Toolkit`
+    
+    const singleStyle = getStyleDisplayName(funnelState.influenceStyle)
+    console.log("Creating single style title:", { singleStyle });
+    return `${singleStyle} Toolkit`
   }
 
   const getToolkitDescription = () => {
