@@ -228,10 +228,15 @@ export default function PostQuizFunnelPage() {
       lastUpdatedAt: new Date().toISOString()
     }
     
-    // Remove from cart
-    updatedState.cart = updatedState.cart.filter(item => 
-      !item.type.includes(productType)
-    )
+    // Remove from cart - only remove the specific declined product
+    console.log("Cart before decline:", updatedState.cart)
+    console.log("Declining product type:", productType)
+    updatedState.cart = updatedState.cart.filter(item => {
+      const shouldKeep = item.type !== productType
+      console.log(`Cart item ${item.type} vs declined ${productType}: ${shouldKeep ? 'KEEP' : 'REMOVE'}`)
+      return shouldKeep
+    })
+    console.log("Cart after decline:", updatedState.cart)
     
     // Add decline tag
     updatedState.tags.push(`NO_${productType.toUpperCase()}`)
@@ -458,19 +463,49 @@ export default function PostQuizFunnelPage() {
         throw new Error(`HTTP ${response.status}`)
       }
     })
-    .then(data => {
-      if (data.funnelState) {
-        console.log("API returned funnel state:", data.funnelState)
-        console.log("State integrity check before update:", {
-          userId: data.funnelState.userId,
-          userEmail: data.funnelState.userEmail,
-          influenceStyle: data.funnelState.influenceStyle
-        })
-        setFunnelState(data.funnelState)
-        currentStateRef.current = data.funnelState
-        console.log("Ref updated with new state")
-      }
-    })
+         .then(data => {
+       if (data.funnelState) {
+         console.log("API returned funnel state:", data.funnelState)
+         console.log("State integrity check before update:", {
+           userId: data.funnelState.userId,
+           userEmail: data.funnelState.userEmail,
+           influenceStyle: data.funnelState.influenceStyle
+         })
+         
+              // Only update if the returned state has valid data and doesn't corrupt our cart
+     if (data.funnelState.userId && 
+         data.funnelState.userEmail && 
+         data.funnelState.influenceStyle) {
+       
+       // Preserve the current cart and tags when updating from API
+       const currentState = currentStateRef.current
+       console.log("Current state before API update:", {
+         cart: currentState?.cart,
+         cartLength: currentState?.cart?.length,
+         tags: currentState?.tags
+       })
+       
+       if (currentState && currentState.cart && currentState.cart.length > 0) {
+         console.log("Preserving existing cart during API update:", currentState.cart)
+         data.funnelState.cart = [...currentState.cart]
+         data.funnelState.tags = [...currentState.tags]
+       } else {
+         console.warn("No existing cart to preserve, API state may be corrupting cart")
+       }
+       
+       console.log("Final state being set (with cart):", {
+         cart: data.funnelState.cart,
+         cartLength: data.funnelState.cart?.length
+       })
+       
+       setFunnelState(data.funnelState)
+       currentStateRef.current = data.funnelState
+       console.log("Ref updated with new state (cart preserved)")
+     } else {
+       console.warn("API returned corrupted state, skipping update")
+     }
+       }
+     })
     .catch(error => {
       console.error("Error updating demo progress:", error)
     })
