@@ -232,19 +232,50 @@ export default function EngineOffer({
 
         {/* Demo Section */}
         <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">🎬 Quick Demo</h2>
-              <p className="text-lg text-gray-700">
-                You'll see a short demo today — just a taste of what's possible.
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-900 text-center">🎬 Quick Demo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-w-2xl mx-auto">
+              <video 
+                className="w-full rounded-lg shadow-lg"
+                controls
+                onTimeUpdate={(e) => {
+                  const video = e.target as HTMLVideoElement
+                  // Enhanced validation before calculating percentage
+                  if (video.duration && 
+                      isFinite(video.duration) && 
+                      video.duration > 0 && 
+                      isFinite(video.currentTime) && 
+                      video.currentTime >= 0) {
+                    const percentage = (video.currentTime / video.duration) * 100
+                    // Double-check the calculated percentage is valid
+                    if (isFinite(percentage) && percentage >= 0 && percentage <= 100) {
+                      debouncedProgressHandler(percentage)
+                    } else {
+                      console.warn("Invalid calculated percentage:", percentage, "from currentTime:", video.currentTime, "duration:", video.duration)
+                    }
+                  }
+                }}
+              >
+                <source src="/assets/funnel/videos/influence-engine-demo.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <p className="text-sm text-gray-500 text-center mt-2">
+                Watch the demo to see how The Influence Engine™ works (optional)
               </p>
-              <p className="text-lg text-gray-700">
-                After you unlock access, I'll send you a longer demo by email showing how the Engine works in:
-              </p>
-              <div className="space-y-2 text-gray-700">
-                <p>• Probate seller conversations</p>
-                <p>• Attorney meetings</p>
-                <p>• Family or partner negotiations</p>
+              <div className="text-center space-y-4 mt-6">
+                <p className="text-lg text-gray-700">
+                  You'll see a short demo today — just a taste of what's possible.
+                </p>
+                <p className="text-lg text-gray-700">
+                  After you unlock access, I'll send you a longer demo by email showing how the Engine works in:
+                </p>
+                <div className="space-y-2 text-gray-700">
+                  <p>• Probate seller conversations</p>
+                  <p>• Attorney meetings</p>
+                  <p>• Family or partner negotiations</p>
+                </div>
               </div>
             </div>
           </CardContent>
