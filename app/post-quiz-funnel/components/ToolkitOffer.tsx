@@ -179,7 +179,6 @@ export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext 
               No thanks, continue
             </Button>
           </div>
-          <p className="text-sm text-gray-500">Next: The Influence Engine™</p>
         </div>
       </div>
     </div>

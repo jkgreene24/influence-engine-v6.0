@@ -158,7 +158,6 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
               No thanks, continue
             </Button>
           </div>
-          <p className="text-sm text-gray-500">Next: Complete Your Order</p>
         </div>
       </div>
     </div>

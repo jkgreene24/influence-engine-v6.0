@@ -227,7 +227,6 @@ export default function EngineOffer({
               No thanks
             </Button>
           </div>
-          <p className="text-sm text-gray-500">Next: Book Add-On</p>
         </div>
       </div>
     </div>

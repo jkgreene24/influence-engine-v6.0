@@ -132,7 +132,6 @@ export default function BookOffer({ funnelState, onSelect, onDecline, onNext }: 
               No thanks
             </Button>
           </div>
-          <p className="text-sm text-gray-500">Next: Bundle Offers</p>
         </div>
       </div>
     </div>

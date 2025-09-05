@@ -321,7 +321,6 @@ export default function SnapshotDelivery({ funnelState, onNext }: SnapshotDelive
           >
             Unlock My Full Toolkit →
           </Button>
-          <p className="text-sm text-gray-500">Next: Get your complete influence style toolkit</p>
         </div>
       </div>
     </div>
