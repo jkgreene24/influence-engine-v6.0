@@ -147,15 +147,6 @@ export default function ToolkitOffer({ funnelState, onSelect, onDecline, onNext 
           </CardContent>
         </Card>
 
-        <Card className="mb-8 bg-yellow-50 border-yellow-200">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-lg text-yellow-900 mb-4">
-                ✨ This is tied to your exact Influence Style. You won't see this page again.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="text-center space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
