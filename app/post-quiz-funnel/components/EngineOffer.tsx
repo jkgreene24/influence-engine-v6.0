@@ -311,7 +311,7 @@ export default function EngineOffer({
               }}
               className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
             >
-              🔓 Yes — Unlock The Full Influence Engine™ Now
+              🔓 Yes, Unlock The Influence Engine™
             </Button>
             <Button
               onClick={() => {
@@ -321,7 +321,7 @@ export default function EngineOffer({
               variant="outline"
               className="px-8 py-3 text-lg font-semibold"
             >
-              ❌ No thanks, I'll pass on sharper conversations and more deals
+              ❌ No thanks
             </Button>
           </div>
         </div>
