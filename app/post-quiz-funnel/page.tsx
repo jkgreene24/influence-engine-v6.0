@@ -9,14 +9,18 @@ import {
 import SnapshotDelivery from "@/app/post-quiz-funnel/components/SnapshotDelivery"
 import ToolkitOffer from "@/app/post-quiz-funnel/components/ToolkitOffer"
 import EngineOffer from "@/app/post-quiz-funnel/components/EngineOffer"
+import MasteryClassOffer from "@/app/post-quiz-funnel/components/MasteryClassOffer"
 import BookOffer from "@/app/post-quiz-funnel/components/BookOffer"
 import BundleOffer from "@/app/post-quiz-funnel/components/BundleOffer"
+import MasteryBundlePopup from "@/app/post-quiz-funnel/components/MasteryBundlePopup"
+import FinalReviewPage from "@/app/post-quiz-funnel/components/FinalReviewPage"
 import Checkout from "@/app/post-quiz-funnel/components/Checkout"
 import Success from "@/app/post-quiz-funnel/components/Success"
 
 export default function PostQuizFunnelPage() {
   const [funnelState, setFunnelState] = useState<PostQuizFunnelState | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showMasteryPopup, setShowMasteryPopup] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -145,12 +149,15 @@ export default function PostQuizFunnelPage() {
       type: productType as any,
       stripeSku: productType === 'toolkit' ? 'IE_TOOLKIT' : 
                  productType === 'engine' ? 'INFLUENCE_ENGINE_1YR' :
+                 productType === 'mastery' ? 'MASTERY_CLASS' :
                  productType === 'book' ? 'BOOK_INFLUENCE_FIRST' : 'BUNDLE_ENGINE',
       price: productType === 'toolkit' ? 79 : 
              productType === 'engine' ? 499 :
+             productType === 'mastery' ? 297 :
              productType === 'book' ? 19 : 547,
       stripePriceId: productType === 'toolkit' ? process.env.STRIPE_TOOLKIT_PRICE_ID :
                     productType === 'engine' ? process.env.STRIPE_ENGINE_PRICE_ID :
+                    productType === 'mastery' ? process.env.STRIPE_MASTERY_CLASS_PRICE_ID :
                     productType === 'book' ? process.env.STRIPE_BOOK_PRICE_ID : process.env.STRIPE_BUNDLE_ENGINE_PRICE_ID,
       metadata: {
         productType: productType,
@@ -296,13 +303,36 @@ export default function PostQuizFunnelPage() {
           nextStep = 'engine'
           break
         case 'engine':
+          // Check if engine was declined - if so, show mastery class
+          if (currentState.products.engine.declined) {
+            nextStep = 'mastery'
+          } else {
+            nextStep = 'book'
+          }
+          break
+        case 'mastery':
           nextStep = 'book'
           break
         case 'book':
           nextStep = 'bundle'
           break
         case 'bundle':
-          nextStep = 'checkout'
+          // Check if a bundle was selected
+          const hasBundle = currentState.cart.some(item => item.type.includes('bundle'))
+          if (hasBundle) {
+            // If IE bundle, popup will handle the flow
+            // If mastery bundle, go directly to checkout
+            const isIeBundle = currentState.cart.some(item => item.type === 'bundle_engine')
+            if (isIeBundle) {
+              // Popup will handle the flow, don't change step here
+              return currentState
+            } else {
+              nextStep = 'checkout'
+            }
+          } else {
+            // No bundle selected, show final review page
+            nextStep = 'final_review'
+          }
           break
         case 'checkout':
           nextStep = 'success'
@@ -324,6 +354,10 @@ export default function PostQuizFunnelPage() {
           engine: {
             ...currentState.products.engine,
             offered: nextStep === 'engine' ? true : currentState.products.engine.offered
+          },
+          mastery: {
+            ...currentState.products.mastery,
+            offered: nextStep === 'mastery' ? true : currentState.products.mastery.offered
           },
           book: {
             ...currentState.products.book,
@@ -540,6 +574,37 @@ export default function PostQuizFunnelPage() {
     }
   }
 
+  const handleMasteryPopupSelect = () => {
+    if (!funnelState) return
+    
+    // Add mastery to cart at special price
+    const updatedState = { ...funnelState }
+    updatedState.cart.push({
+      type: 'mastery',
+      stripeSku: 'MASTERY_ADDON',
+      price: 197,
+      stripePriceId: process.env.STRIPE_MASTERY_ADDON_PRICE_ID,
+      metadata: {
+        specialPrice: true,
+        originalPrice: 497,
+        discount: 300
+      }
+    })
+    
+    setFunnelState(updatedState)
+    currentStateRef.current = updatedState
+    setShowMasteryPopup(false)
+    
+    // Go directly to checkout
+    setFunnelState(prev => prev ? { ...prev, currentStep: 'checkout' } : null)
+  }
+
+  const handleMasteryPopupDecline = () => {
+    setShowMasteryPopup(false)
+    // Go directly to checkout
+    setFunnelState(prev => prev ? { ...prev, currentStep: 'checkout' } : null)
+  }
+
   const handleBundleSelection = async (bundleType: 'engine' | 'mastery') => {
     if (!funnelState) return
 
@@ -576,6 +641,12 @@ export default function PostQuizFunnelPage() {
         }
       })
       console.log("Added engine bundle to cart")
+      
+      // Show mastery popup for IE bundle
+      setFunnelState(updatedState)
+      currentStateRef.current = updatedState
+      setShowMasteryPopup(true)
+      return
     } else {
       updatedState.cart.push({
         type: 'bundle_mastery',
@@ -641,8 +712,9 @@ export default function PostQuizFunnelPage() {
     return null
   }
 
-  // Render the appropriate step component
-  switch (funnelState.currentStep) {
+  const renderCurrentStep = () => {
+    // Render the appropriate step component
+    switch (funnelState.currentStep) {
     case 'snapshot':
       return (
         <SnapshotDelivery
@@ -670,6 +742,15 @@ export default function PostQuizFunnelPage() {
           onMemberAgreement={handleMemberAgreement}
         />
       )
+    case 'mastery':
+      return (
+        <MasteryClassOffer
+          funnelState={funnelState}
+          onSelect={() => handleProductSelection('mastery')}
+          onDecline={() => handleProductDecline('mastery')}
+          onNext={handleNextStep}
+        />
+      )
     case 'book':
       return (
         <BookOffer
@@ -686,6 +767,14 @@ export default function PostQuizFunnelPage() {
           onSelect={handleBundleSelection}
           onDecline={() => handleProductDecline('bundle')}
           onNext={handleNextStep}
+        />
+      )
+    case 'final_review':
+      return (
+        <FinalReviewPage
+          funnelState={funnelState}
+          onAddProduct={(productType) => handleProductSelection(productType as any)}
+          onCompleteOrder={() => setFunnelState(prev => prev ? { ...prev, currentStep: 'checkout' } : null)}
         />
       )
     case 'checkout':
@@ -710,5 +799,17 @@ export default function PostQuizFunnelPage() {
           </div>
         </div>
       )
+    }
   }
+
+  return (
+    <>
+      {renderCurrentStep()}
+      <MasteryBundlePopup
+        isOpen={showMasteryPopup}
+        onSelect={handleMasteryPopupSelect}
+        onDecline={handleMasteryPopupDecline}
+      />
+    </>
+  )
 }

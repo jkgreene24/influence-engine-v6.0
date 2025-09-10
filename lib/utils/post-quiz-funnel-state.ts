@@ -18,6 +18,7 @@ export interface PostQuizFunnelState {
   products: {
     toolkit: ProductState;
     engine: ProductState;
+    mastery: ProductState;
     book: ProductState;
     bundle: ProductState;
   };
@@ -53,8 +54,10 @@ export type FunnelStep =
   | 'snapshot' 
   | 'toolkit' 
   | 'engine' 
+  | 'mastery'
   | 'book' 
   | 'bundle' 
+  | 'final_review'
   | 'checkout' 
   | 'success';
 
@@ -69,7 +72,7 @@ export interface ProductState {
 }
 
 export interface CartItem {
-  type: 'toolkit' | 'engine' | 'book' | 'bundle_engine' | 'bundle_mastery';
+  type: 'toolkit' | 'engine' | 'mastery' | 'book' | 'bundle_engine' | 'bundle_mastery';
   stripeSku: string;
   price: number;
   stripePriceId?: string;
@@ -157,6 +160,7 @@ export function createInitialFunnelState(
     products: {
       toolkit: { offered: false, selected: false, declined: false },
       engine: { offered: false, selected: false, declined: false },
+      mastery: { offered: false, selected: false, declined: false },
       book: { offered: false, selected: false, declined: false },
       bundle: { offered: false, selected: false, declined: false },
     },
