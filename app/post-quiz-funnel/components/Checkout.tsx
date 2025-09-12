@@ -50,6 +50,19 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
         type: "bundle",
         bundleType: bundleType
       })
+
+      // Check for additional items in cart (like mastery add-on)
+      const masteryAddonItem = funnelState.cart.find(item => item.type === 'mastery')
+      if (masteryAddonItem) {
+        console.log("Found mastery add-on in cart:", masteryAddonItem)
+        products.push({
+          name: "Mastery Class Add-on",
+          description: "Advanced objection handling and conversation templates",
+          price: masteryAddonItem.price,
+          image: "mastery",
+          type: "mastery"
+        })
+      }
     } else {
       // Add individual products only if bundle is not selected
       if (funnelState.products.toolkit.selected) {
@@ -111,6 +124,19 @@ export default function Checkout({ funnelState, onUpdateState }: CheckoutProps) 
           price: bookPrice,
           image: "book",
           type: "book"
+        })
+      }
+
+      // Check for mastery add-on even when bundle is not selected
+      const masteryAddonItem = funnelState.cart.find(item => item.type === 'mastery')
+      if (masteryAddonItem) {
+        console.log("Found mastery add-on in cart:", masteryAddonItem)
+        products.push({
+          name: "Mastery Class Add-on",
+          description: "Advanced objection handling and conversation templates",
+          price: masteryAddonItem.price,
+          image: "mastery",
+          type: "mastery"
         })
       }
     }

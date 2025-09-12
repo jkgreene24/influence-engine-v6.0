@@ -619,12 +619,11 @@ export default function PostQuizFunnelPage() {
       }
     })
     
+    // Update state and go to checkout
+    updatedState.currentStep = 'checkout'
     setFunnelState(updatedState)
     currentStateRef.current = updatedState
     setShowMasteryPopup(false)
-    
-    // Go directly to checkout
-    setFunnelState(prev => prev ? { ...prev, currentStep: 'checkout' } : null)
   }
 
   const handleMasteryPopupDecline = () => {
