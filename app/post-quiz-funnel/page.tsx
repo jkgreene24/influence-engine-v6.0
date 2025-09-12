@@ -144,6 +144,15 @@ export default function PostQuizFunnelPage() {
     
     console.log("Cart before adding item:", updatedState.cart)
     
+    // Check if product is already in cart to prevent duplicates
+    const alreadyInCart = updatedState.cart.some(item => item.type === productType)
+    if (alreadyInCart) {
+      console.log("Product already in cart, skipping addition")
+      setFunnelState(updatedState)
+      currentStateRef.current = updatedState
+      return
+    }
+    
     // Add to cart with proper Stripe configuration
     const cartItem = {
       type: productType as any,
@@ -153,7 +162,7 @@ export default function PostQuizFunnelPage() {
                  productType === 'book' ? 'BOOK_INFLUENCE_FIRST' : 'BUNDLE_ENGINE',
       price: productType === 'toolkit' ? 79 : 
              productType === 'engine' ? 499 :
-             productType === 'mastery' ? 297 :
+             productType === 'mastery' ? 299 :
              productType === 'book' ? 19 : 547,
       stripePriceId: productType === 'toolkit' ? process.env.STRIPE_TOOLKIT_PRICE_ID :
                     productType === 'engine' ? process.env.STRIPE_ENGINE_PRICE_ID :
@@ -327,6 +336,7 @@ export default function PostQuizFunnelPage() {
               // Popup will handle the flow, don't change step here
               return currentState
             } else {
+              // Mastery bundle or other bundle - go directly to checkout
               nextStep = 'checkout'
             }
           } else {
@@ -510,34 +520,52 @@ export default function PostQuizFunnelPage() {
      if (data.funnelState.userId && 
          data.funnelState.userEmail && 
          data.funnelState.influenceStyle) {
-       
-       // Preserve the current cart and tags when updating from API
-       const currentState = currentStateRef.current
-       console.log("Current state before API update:", {
-         cart: currentState?.cart,
-         cartLength: currentState?.cart?.length,
-         tags: currentState?.tags
-       })
-       
-       if (currentState && currentState.cart && currentState.cart.length > 0) {
-         console.log("Preserving existing cart during API update:", currentState.cart)
-         data.funnelState.cart = [...currentState.cart]
-         data.funnelState.tags = [...currentState.tags]
-       } else {
-         console.warn("No existing cart to preserve, API state may be corrupting cart")
-       }
-       
-       console.log("Final state being set (with cart):", {
-         cart: data.funnelState.cart,
-         cartLength: data.funnelState.cart?.length
-       })
-       
-       setFunnelState(data.funnelState)
-       currentStateRef.current = data.funnelState
-       console.log("Ref updated with new state (cart preserved)")
-     } else {
-       console.warn("API returned corrupted state, skipping update")
-     }
+
+  // Preserve the current cart, tags, and products when updating from API
+  const currentState = currentStateRef.current
+  console.log("Current state before API update:", {
+    cart: currentState?.cart,
+    cartLength: currentState?.cart?.length,
+    tags: currentState?.tags,
+    products: currentState?.products
+  })
+  
+  if (currentState) {
+    // Preserve existing cart
+    if (currentState.cart && currentState.cart.length > 0) {
+      console.log("Preserving existing cart during API update:", currentState.cart)
+      data.funnelState.cart = [...currentState.cart]
+    }
+    
+    // Preserve existing tags
+    if (currentState.tags && currentState.tags.length > 0) {
+      data.funnelState.tags = [...currentState.tags]
+    }
+    
+    // Preserve existing products structure
+    if (currentState.products) {
+      console.log("Preserving existing products during API update:", currentState.products)
+      data.funnelState.products = {
+        ...currentState.products,
+        ...data.funnelState.products, // Allow API to override specific product states
+      }
+    }
+  } else {
+    console.warn("No existing state to preserve, API state may be incomplete")
+  }
+  
+  console.log("Final state being set (with preserved data):", {
+    cart: data.funnelState.cart,
+    cartLength: data.funnelState.cart?.length,
+    products: data.funnelState.products
+  })
+  
+  setFunnelState(data.funnelState)
+  currentStateRef.current = data.funnelState
+  console.log("Ref updated with new state (cart and products preserved)")
+} else {
+  console.warn("API returned corrupted state, skipping update")
+}
        }
      })
     .catch(error => {
@@ -582,11 +610,11 @@ export default function PostQuizFunnelPage() {
     updatedState.cart.push({
       type: 'mastery',
       stripeSku: 'MASTERY_ADDON',
-      price: 197,
+      price: 199,
       stripePriceId: process.env.STRIPE_MASTERY_ADDON_PRICE_ID,
       metadata: {
         specialPrice: true,
-        originalPrice: 497,
+        originalPrice: 499,
         discount: 300
       }
     })
@@ -618,12 +646,13 @@ export default function PostQuizFunnelPage() {
     updatedState.products.bundle.selectedAt = new Date().toISOString()
     updatedState.products.bundle.declined = false
     
-    // Clear individual products and replace with bundle
+    // Mark individual products as replaced by bundle (not selected)
     updatedState.products.toolkit.selected = false
     updatedState.products.engine.selected = false
     updatedState.products.book.selected = false
+    updatedState.products.mastery.selected = false
     
-    // Clear cart and add bundle
+    // Clear cart completely and add bundle (bundles replace everything)
     updatedState.cart = []
     console.log("Cart cleared, adding bundle...")
     
@@ -656,7 +685,7 @@ export default function PostQuizFunnelPage() {
         metadata: {
           bundleType: 'mastery',
           replacesIndividualItems: true,
-          replacesItems: ['toolkit', 'book']
+          replacesItems: ['toolkit', 'book', 'mastery']
         }
       })
       console.log("Added mastery bundle to cart")
@@ -672,7 +701,8 @@ export default function PostQuizFunnelPage() {
     updatedState.tags = updatedState.tags.filter(tag => 
       !tag.startsWith('PROD_TOOLKIT') && 
       !tag.startsWith('PROD_ENGINE') && 
-      !tag.startsWith('PROD_BOOK')
+      !tag.startsWith('PROD_BOOK') &&
+      !tag.startsWith('PROD_MASTERY')
     )
     
     updatedState.lastUpdatedAt = new Date().toISOString()

@@ -36,7 +36,7 @@ export default function BundleOffer({ funnelState, onSelect, onDecline, onNext }
         title: "Influence Mastery Bundle",
         description: "Mastery package: Toolkit + Book",
         items: [
-          "🎥 Influence Mastery Package ($299, reg $399)",
+          "🎥 Influence Mastery Package ($299, reg $499)",
           "🧰 Toolkit ($79)",
           "📘 Book ($19)"
         ],

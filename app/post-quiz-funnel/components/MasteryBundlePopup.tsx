@@ -26,7 +26,7 @@ export default function MasteryBundlePopup({ isOpen, onSelect, onDecline }: Mast
                   ✅ You've unlocked the Influence Engine™ Bundle (IE + Toolkit + Book).
                 </p>
                 <p className="text-lg text-gray-700">
-                  👉 Add the Mastery Class to your bundle for just $197 (normally $497).
+                  👉 Add the Mastery Class to your bundle for just $199 (normally $499).
                 </p>
               </div>
               
@@ -57,14 +57,14 @@ export default function MasteryBundlePopup({ isOpen, onSelect, onDecline }: Mast
                   onClick={onSelect}
                   className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
                 >
-                  🔓 Yes — Add Mastery for $197
+                  🔓 Yes — Add Mastery for $199
                 </Button>
                 <Button
                   onClick={onDecline}
                   variant="outline"
                   className="px-8 py-3 text-lg font-semibold"
                 >
-                  ❌ No thanks, continue to checkout
+                  ❌ No thanks  
                 </Button>
               </div>
             </div>

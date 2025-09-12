@@ -22,7 +22,7 @@ export default function MasteryClassOffer({ funnelState, onSelect, onDecline, on
           </div>
           <h1 className="text-4xl font-bold mb-2">🎥 Upgrade Your Influence Skills with the Mastery Class</h1>
           <p className="text-xl text-white/90">
-            💵 Normally $497 → Today only $297 (Save $200)
+            💵 Normally $499 → Today only $299 (Save $200)
           </p>
         </div>
       </div>
@@ -134,10 +134,10 @@ export default function MasteryClassOffer({ funnelState, onSelect, onDecline, on
               <h2 className="text-2xl font-bold text-gray-900">🎁 Special Offer</h2>
               <div className="space-y-4">
                 <div className="text-3xl font-bold text-[#92278F]">
-                  💵 Normally $497
+                  💵 Normally $499
                 </div>
                 <div className="text-4xl font-bold text-green-600">
-                  ✨ Today only: $297
+                  ✨ Today only: $299
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function MasteryClassOffer({ funnelState, onSelect, onDecline, on
               }}
               className="bg-[#92278F] hover:bg-[#7a1f78] text-white px-8 py-3 text-lg font-semibold"
             >
-              🔓 Yes — Add the Mastery Class for $297
+              🔓 Yes — Add the Mastery Class for $299
             </Button>
             <Button
               onClick={() => {

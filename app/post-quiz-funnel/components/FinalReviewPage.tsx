@@ -14,9 +14,24 @@ export default function FinalReviewPage({ funnelState, onAddProduct, onCompleteO
   // Determine what products are already selected
   const selectedProducts = funnelState.cart.map(item => item.type)
   
-  // Determine what products are missing
+  // Check if any bundles are selected
+  const hasEngineBundle = selectedProducts.includes('bundle_engine')
+  const hasMasteryBundle = selectedProducts.includes('bundle_mastery')
+  
+  // Determine what products are missing (considering bundles)
   const allProducts: ('toolkit' | 'engine' | 'mastery' | 'book')[] = ['toolkit', 'engine', 'mastery', 'book']
-  const missingProducts = allProducts.filter(product => !selectedProducts.includes(product))
+  
+  let missingProducts = allProducts.filter(product => !selectedProducts.includes(product))
+  
+  // If IE Bundle is selected, don't offer toolkit, engine, or book (they're included)
+  if (hasEngineBundle) {
+    missingProducts = missingProducts.filter(product => product !== 'toolkit' && product !== 'engine' && product !== 'book')
+  }
+  
+  // If Mastery Bundle is selected, don't offer toolkit, book, or mastery (they're included)
+  if (hasMasteryBundle) {
+    missingProducts = missingProducts.filter(product => product !== 'toolkit' && product !== 'book' && product !== 'mastery')
+  }
   
   // Calculate total
   const total = funnelState.cart.reduce((sum, item) => sum + (item.price || 0), 0)
@@ -25,7 +40,7 @@ export default function FinalReviewPage({ funnelState, onAddProduct, onCompleteO
     const productInfo = {
       toolkit: { name: 'Full Toolkit', price: 79, icon: '🧰' },
       engine: { name: 'Influence Engine™', price: 499, icon: '🤖' },
-      mastery: { name: 'Mastery Class', price: 297, icon: '🎓' },
+      mastery: { name: 'Mastery Class', price: 299, icon: '🎓' },
       book: { name: 'Book', price: 19, icon: '📚' }
     }
     return productInfo[productType as keyof typeof productInfo] || { name: productType, price: 0, icon: '📦' }
